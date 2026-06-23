@@ -324,10 +324,8 @@ elif page == "🤖 Entraînement":
 
         import optuna
         trial_results = []
-        best_recall = 0
 
         def objective(trial):
-            nonlocal best_recall
             params = {
                 "n_estimators": trial.suggest_int("n_estimators", 100, n_estimators_max),
                 "max_depth": trial.suggest_int("max_depth", 3, max_depth),
@@ -349,8 +347,6 @@ elif page == "🤖 Entraînement":
             prec = precision_score(y_test, y_pred)
             res = {"trial": trial.number, "recall": rec, "precision": prec, "params": params}
             trial_results.append(res)
-            if rec > best_recall:
-                best_recall = rec
             return rec if prec >= 0.15 else 0.0
 
         with st.spinner("Optimisation Optuna en cours..."):
