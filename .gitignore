@@ -10,18 +10,18 @@ venv/
 env/
 .venv/
 
-# Data
+# Data (large files, not tracked)
 data/*.csv
 data/*.pkl
 data/*.db
 data/*.sqlite
 data/*.zip
 
-# Models
+# Models (test artifacts)
 models/*.pkl
 models/*.npy
 models/*.json
-models_test/*
+models_test/
 
 # IDE
 .vscode/
@@ -32,7 +32,7 @@ models_test/*
 # Environment
 .env
 
-# Notebooks (track the source, not the outputs)
+# Notebooks
 .ipynb_checkpoints/
 
 # OS
@@ -42,45 +42,12 @@ Thumbs.db
 # Logs
 *.log
 logs/
-
-# Optuna logs
 full_optuna_*.txt
 
 # Embedded submodule
 agency-agents/
 
-# Auto-generated entries
-# Dependencies
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Build outputs
-dist/
-build/
-*.log
-
-# Environment files
-.env
-.env.*
-!.env.example
-
-# IDE files
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS files
-.DS_Store
-Thumbs.db
-
 # Temporary files
 *.tmp
 *.temp
 .cache/
-
-# Sensitive files (auto-detected)
-.env.example
-
