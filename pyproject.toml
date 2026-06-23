@@ -34,8 +34,8 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/"
-Documentation = "https://github.com/"
+Homepage = "https://github.com/NANCY995/FRAUDX"
+Documentation = "https://github.com/NANCY995/FRAUDX"
 
 [project.scripts]
 fraudx = "fraudx.cli:main"
