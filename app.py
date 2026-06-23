@@ -93,7 +93,7 @@ st.sidebar.caption(f"Mise à jour : {datetime.now().strftime('%H:%M')}")
 # =====================================================================
 # PAGE 1 : ACCUEIL / DATASET
 # =====================================================================
-if page == "📥 Dataset":
+if page == "Dataset":
     st.title("📥 Chargement du dataset")
     st.caption("Importez vos transactions bancaires ou utilisez un dataset de référence")
 
@@ -162,7 +162,7 @@ if page == "📥 Dataset":
 # =====================================================================
 # PAGE 2 : PRÉTRAITEMENT
 # =====================================================================
-elif page == "🧹 Prétraitement":
+elif page == "Prétraitement":
     st.title("🧹 Prétraitement interactif")
     st.caption("Configurez et visualisez chaque étape du nettoyage")
 
@@ -291,7 +291,7 @@ elif page == "🧹 Prétraitement":
 # =====================================================================
 # PAGE 3 : ENTRAÎNEMENT
 # =====================================================================
-elif page == "🤖 Entraînement":
+elif page == "Entraînement":
     st.title("🤖 Entraînement du modèle")
     st.caption("XGBoost avec optimisation Optuna")
 
@@ -431,7 +431,7 @@ elif page == "🤖 Entraînement":
 # =====================================================================
 # PAGE 4 : RÉSULTATS
 # =====================================================================
-elif page == "📊 Résultats":
+elif page == "Résultats":
     st.title("📊 Résultats & Interprétation")
     st.caption("Métriques, SHAP, benchmark et export")
 
@@ -523,7 +523,7 @@ elif page == "📊 Résultats":
 # =====================================================================
 # PAGE 5 : BENCHMARK
 # =====================================================================
-elif page == "📊 Benchmark":
+elif page == "Benchmark":
     st.title("📊 Benchmark — Comparaison de modèles")
     st.caption("Comparez XGBoost, Random Forest et Isolation Forest sur le jeu de test")
 
@@ -678,7 +678,7 @@ elif page == "📊 Benchmark":
 # =====================================================================
 # PAGE 6 : PRÉDICTION
 # =====================================================================
-elif page == "🔮 Prédiction":
+elif page == "Prédiction":
     st.title("🔮 Prédiction temps réel")
     st.caption("Testez une transaction individuelle")
 
