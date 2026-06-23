@@ -36,7 +36,7 @@ def cmd_api(args):
 def cmd_dashboard(args):
     port = args.port or int(os.environ.get("DASHBOARD_PORT", "8501"))
     print(f"📊 Lancement du dashboard sur :{port}")
-    os.execvp("streamlit", ["streamlit", "run", "app_streamlit.py", "--server.port", str(port)])
+    os.execvp("streamlit", ["streamlit", "run", "app.py", "--server.port", str(port)])
 
 
 def cmd_simulate(args):

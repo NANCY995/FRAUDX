@@ -72,7 +72,7 @@ Swagger UI : http://localhost:8000/docs
 ### 4. Lancer le dashboard
 
 ```bash
-streamlit run app_streamlit.py
+streamlit run app.py
 ```
 
 Dashboard : http://localhost:8501
@@ -160,7 +160,7 @@ fraudx/
 src/
 ├── api.py               # API FastAPI complète
 
-app_streamlit.py         # Dashboard Streamlit
+app.py                   # Application Streamlit complète
 retrain.py               # Réentraînement automatique
 simulate_stream.py       # Simulateur de flux temps réel
 Dockerfile               # Conteneurisation
