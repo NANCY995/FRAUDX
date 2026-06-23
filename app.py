@@ -113,8 +113,24 @@ if page == "Dataset":
                     path = Path("data/train_transaction.csv")
                     id_path = Path("data/train_identity.csv")
                     if not path.exists():
-                        st.error("Fichier non trouvé. Placez train_transaction.csv dans data/")
-                        st.stop()
+                        with st.status("Téléchargement depuis Kaggle..."):
+                            try:
+                                import kagglehub
+                                kaggle_path = Path(kagglehub.competition_download("ieee-fraud-detection"))
+                                st.write(f"Dataset téléchargé dans {kaggle_path}")
+                                import shutil
+                                os.makedirs("data", exist_ok=True)
+                                for f in ["train_transaction.csv", "train_identity.csv"]:
+                                    src = kaggle_path / f
+                                    if src.exists():
+                                        shutil.copy(src, f"data/{f}")
+                                        st.write(f"✓ {f} copié")
+                                path = Path("data/train_transaction.csv")
+                                id_path = Path("data/train_identity.csv")
+                            except Exception as e:
+                                st.error(f"Téléchargement impossible : {e}")
+                                st.info("Utilisez l'option 'Upload CSV' ou placez manuellement les fichiers dans data/")
+                                st.stop()
                     df = pd.read_csv(path, nrows=n_rows)
                     if id_path.exists():
                         identity = pd.read_csv(id_path, nrows=n_rows)
