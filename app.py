@@ -54,6 +54,20 @@ if "shap_values" not in st.session_state: st.session_state.shap_values = None
 if "shap_data" not in st.session_state: st.session_state.shap_data = None
 if "model_loaded" not in st.session_state: st.session_state.model_loaded = False
 
+# ─── Auto-charger le modèle pré-entraîné ───
+if not st.session_state.model_loaded:
+    model_path = Path("models_optuna/xgb_model.pkl")
+    if model_path.exists():
+        try:
+            st.session_state.model = joblib.load("models_optuna/xgb_model.pkl")
+            st.session_state.threshold = float(np.load("models_optuna/best_threshold.npy"))
+            if Path("models_optuna/metrics.json").exists():
+                with open("models_optuna/metrics.json") as f:
+                    st.session_state.metrics = json.load(f)
+            st.session_state.model_loaded = True
+        except Exception:
+            pass
+
 # ─── Sidebar — Navigation & Progress ───
 st.sidebar.markdown("<h1 style='text-align:center;'>🛡️ FRAUDX</h1>", unsafe_allow_html=True)
 st.sidebar.caption("Détection de fraude bancaire par IA")
@@ -104,7 +118,7 @@ if page == "Dataset":
         if source == "Upload CSV":
             uploaded = st.file_uploader("Choisir un fichier CSV", type="csv")
         else:
-            n_rows = st.number_input("Nombre de lignes", 10000, 590540, 100000, step=10000)
+            n_rows = st.number_input("Nombre de lignes", 1000, 200000, 50000, step=10000)
 
     if st.button(" Charger le dataset", use_container_width=True, type="primary"):
         with st.spinner("Chargement en cours..."):
@@ -139,8 +153,20 @@ if page == "Dataset":
                 elif source.startswith("Credit"):
                     path = Path("data/creditcard.csv")
                     if not path.exists():
-                        st.error("Fichier non trouvé. Placez creditcard.csv dans data/")
-                        st.stop()
+                        with st.status("Téléchargement depuis Internet..."):
+                            try:
+                                import requests
+                                url = "https://storage.googleapis.com/download.tensorflow.org/data/creditcard.csv"
+                                st.write("Téléchargement de creditcard.csv (~150 Mo)...")
+                                os.makedirs("data", exist_ok=True)
+                                r = requests.get(url, stream=True, timeout=120)
+                                with open("data/creditcard.csv", "wb") as f:
+                                    f.write(r.content)
+                                st.write("✓ creditcard.csv téléchargé")
+                                path = Path("data/creditcard.csv")
+                            except Exception as e:
+                                st.error(f"Téléchargement impossible : {e}")
+                                st.stop()
                     df = pd.read_csv(path, nrows=n_rows)
                     st.session_state.df_name = f"Credit Card ({len(df):,} lignes)"
                 else:
@@ -318,8 +344,9 @@ elif page == "Entraînement":
     st.subheader("⚙️ Paramètres")
     col1, col2, col3 = st.columns(3)
     with col1:
-        n_trials = st.slider("Essais Optuna", 5, 100, 20, 5)
+        n_trials = st.slider("Essais Optuna", 2, 30, 5, 1)
         use_smote = st.checkbox("SMOTE", True)
+        smote_ratio = st.slider("Ratio SMOTE", 0.1, 1.0, 0.5, 0.1)
     with col2:
         n_estimators_max = st.slider("Max n_estimators", 100, 600, 300, 50)
         learning_rate = st.select_slider("Learning rate", options=[0.005, 0.01, 0.05, 0.1, 0.2], value=0.05)
@@ -379,7 +406,7 @@ elif page == "Entraînement":
         best_params["scale_pos_weight"] = best_params.get("scale_pos_weight", scale_pos_weight)
 
         if use_smote and len(X_train) < 200000:
-            smote = SMOTE(random_state=42, sampling_strategy=0.5)
+            smote = SMOTE(random_state=42, sampling_strategy=smote_ratio)
             X_res, y_res = smote.fit_resample(X_train, y_train)
             st.info(f"SMOTE : {X_train.shape} → {X_res.shape}")
         else:
@@ -543,10 +570,10 @@ elif page == "Benchmark":
     st.title("📊 Benchmark — Comparaison de modèles")
     st.caption("Comparez XGBoost, Random Forest et Isolation Forest sur le jeu de test")
 
-    import json, csv, glob as glob_mod
+    import json
+    from glob import glob as glob_fn
 
-    # Discover existing benchmark reports
-    report_dirs = sorted(glob_mod.glob("reports/benchmark_*/summary.json"), reverse=True)
+    report_dirs = sorted(glob_fn("reports/benchmark_*/summary.json"), reverse=True)
 
     tab1, tab2 = st.tabs(["📈 Résultats sauvegardés", "🚀 Nouveau benchmark"])
 
