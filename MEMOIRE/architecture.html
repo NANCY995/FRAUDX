@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FRAUDX — Architecture Technique (Annexe D)</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0a1628; color: #e8eaf6; padding: 40px; min-height: 100vh; }
+h1 { text-align: center; font-size: 1.8rem; margin-bottom: 8px; color: #42a5f5; }
+.subtitle { text-align: center; color: #78909c; margin-bottom: 40px; font-size: 0.9rem; }
+.arch-container { max-width: 1100px; margin: 0 auto; }
+.arch-layer { margin-bottom: 4px; border-radius: 12px; overflow: hidden; }
+.layer-header { padding: 12px 24px; font-weight: 700; font-size: 0.95rem; letter-spacing: 1px; display: flex; align-items: center; gap: 12px; }
+.layer-body { display: flex; gap: 16px; padding: 16px 24px; flex-wrap: wrap; justify-content: center; }
+.component {
+  background: rgba(17,29,46,0.9); border: 1px solid rgba(66,165,245,0.3);
+  border-radius: 10px; padding: 16px 20px; min-width: 180px; text-align: center;
+  transition: transform 0.2s, box-shadow 0.2s; cursor: default;
+}
+.component:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+.component .icon { font-size: 1.6rem; margin-bottom: 6px; }
+.component .name { font-weight: 600; font-size: 0.9rem; margin-bottom: 4px; }
+.component .desc { font-size: 0.75rem; color: #78909c; line-height: 1.3; }
+.component.highlight { border-color: #42a5f5; box-shadow: 0 0 20px rgba(66,165,245,0.2); }
+.component.critical { border-color: #ef5350; }
+.component.success { border-color: #66bb6a; }
+
+/* Couleurs par couche */
+.layer-client .layer-header { background: linear-gradient(135deg, #1a237e, #283593); }
+.layer-api .layer-header { background: linear-gradient(135deg, #0d47a1, #1565c0); }
+.layer-process .layer-header { background: linear-gradient(135deg, #1b5e20, #2e7d32); }
+.layer-model .layer-header { background: linear-gradient(135deg, #bf360c, #d84315); }
+.layer-data .layer-header { background: linear-gradient(135deg, #4a148c, #6a1b9a); }
+.layer-security .layer-header { background: linear-gradient(135deg, #880e4f, #ad1457); }
+
+.layer-client { border: 1px solid rgba(26,35,126,0.4); }
+.layer-api { border: 1px solid rgba(13,71,161,0.4); }
+.layer-process { border: 1px solid rgba(27,94,32,0.4); }
+.layer-model { border: 1px solid rgba(191,54,12,0.4); }
+.layer-data { border: 1px solid rgba(74,20,140,0.4); }
+.layer-security { border: 1px solid rgba(136,14,79,0.4); }
+
+.arrow-container { text-align: center; padding: 6px 0; }
+.arrow { display: inline-block; width: 2px; height: 28px; background: linear-gradient(to bottom, #42a5f5, #1a3a5c); position: relative; }
+.arrow::after { content: ''; position: absolute; bottom: -6px; left: -5px; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 8px solid #1a3a5c; }
+.arrow-label { display: inline-block; font-size: 0.7rem; color: #78909c; margin-left: 8px; vertical-align: middle; }
+
+.data-flow { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 8px 0; }
+.flow-step { background: var(--card, #111d2e); border: 1px solid var(--border, #1a3a5c); border-radius: 8px; padding: 6px 14px; font-size: 0.75rem; }
+.flow-arrow { color: var(--primary, #42a5f5); font-size: 1.2rem; }
+
+.info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-top: 32px; }
+.info-card { background: #111d2e; border: 1px solid #1a3a5c; border-radius: 10px; padding: 20px; }
+.info-card h3 { color: #42a5f5; font-size: 0.9rem; margin-bottom: 10px; }
+.info-card p { font-size: 0.8rem; color: #b0bec5; line-height: 1.5; }
+.info-card ul { font-size: 0.8rem; color: #b0bec5; padding-left: 16px; line-height: 1.6; }
+
+.footer { text-align: center; color: #455a64; font-size: 0.75rem; margin-top: 40px; padding-top: 20px; border-top: 1px solid #1a3a5c; }
+</style>
+</head>
+<body>
+
+<h1>🛡️ Schéma d'architecture technique</h1>
+<p class="subtitle">FRAUDX — Conception d'un système d'IA pour la détection de la fraude bancaire (Togo)<br>Annexe D du mémoire — Architecture logicielle du système proposé (PoC)</p>
+
+<div class="arch-container">
+
+<!-- ─── COUCHE SÉCURITÉ (横切) ─── -->
+<div class="arch-layer layer-security" style="margin-bottom:8px; opacity:0.85;">
+  <div class="layer-header">🔒 COUCHE SÉCURITÉ — Transversale</div>
+  <div class="layer-body">
+    <div class="component">
+      <div class="icon">🔐</div>
+      <div class="name">Authentification</div>
+      <div class="desc">JWT tokens, HTTPS TLS 1.3, refresh tokens</div>
+    </div>
+    <div class="component">
+      <div class="icon">👥</div>
+      <div class="name">RBAC — 3 Rôles</div>
+      <div class="desc">Analyste • Gestionnaire Risques • Administrateur</div>
+    </div>
+    <div class="component">
+      <div class="icon">📋</div>
+      <div class="name">Audit Logs</div>
+      <div class="desc">Journalisation des accès et décisions du modèle</div>
+    </div>
+    <div class="component">
+      <div class="icon">🛡️</div>
+      <div class="name">Chiffrement</div>
+      <div class="desc">AES-256 au repos, TLS en transit</div>
+    </div>
+    <div class="component">
+      <div class="icon">📜</div>
+      <div class="name">Conformité</div>
+      <div class="desc">KYC/AML BCEAO/UEMOA, PCI DSS</div>
+    </div>
+  </div>
+</div>
+
+<div class="arrow-container"><div class="arrow"></div><span class="arrow-label">Contrôle d'accès sur toutes les couches</span></div>
+
+<!-- ─── COUCHE CLIENT ─── -->
+<div class="arch-layer layer-client">
+  <div class="layer-header">📱 COUCHE CLIENT — Interfaces</div>
+  <div class="layer-body">
+    <div class="component highlight">
+      <div class="icon">📊</div>
+      <div class="name">Dashboard Streamlit</div>
+      <div class="desc">Tableau de bord analyste, alertes temps réel, SHAP visuel</div>
+    </div>
+    <div class="component">
+      <div class="icon">🇹🇬</div>
+      <div class="name">Portail Mobile Money Togo</div>
+      <div class="desc">Interface USSD, APP, AGENT — Mapping TogoCom/Moov/Flooz</div>
+    </div>
+    <div class="component">
+      <div class="icon">🏦</div>
+      <div class="name">API Bancaire</div>
+      <div class="desc">REST pour intégration SI bancaire existant</div>
+    </div>
+    <div class="component">
+      <div class="icon">🖥️</div>
+      <div class="name">CLI / Scripts</div>
+      <div class="desc">fraudx-train, fraudx-simulate, benchmark.py</div>
+    </div>
+  </div>
+</div>
+
+<div class="arrow-container"><div class="arrow"></div><span class="arrow-label">HTTPS / REST API</span></div>
+
+<!-- ─── COUCHE API ─── -->
+<div class="arch-layer layer-api">
+  <div class="layer-header">⚡ COUCHE API — Traitement</div>
+  <div class="layer-body">
+    <div class="component critical">
+      <div class="icon">🚀</div>
+      <div class="name">FastAPI (REST)</div>
+      <div class="desc">Endpoints: /predict, /batch, /predict/togo, /health, /logs, /feedback</div>
+    </div>
+    <div class="component">
+      <div class="icon">🔄</div>
+      <div class="name">Rate Limiter</div>
+      <div class="desc">Protection anti-abus, throttling par client</div>
+    </div>
+    <div class="component">
+      <div class="icon">📡</div>
+      <div class="name">WebSocket</div>
+      <div class="desc">Push temps réel des alertes fraude</div>
+    </div>
+  </div>
+</div>
+
+<div class="arrow-container"><div class="arrow"></div><span class="arrow-label">Données normalisées</span></div>
+
+<!-- ─── COUCHE TRAITEMENT ─── -->
+<div class="arch-layer layer-process">
+  <div class="layer-header">⚙️ COUCHE TRAITEMENT — Pipeline ML</div>
+  <div class="layer-body">
+    <div class="component">
+      <div class="icon">🔧</div>
+      <div class="name">Feature Engineering</div>
+      <div class="desc">Encodage fréquentiel, OHE, features temporelles, comportementales</div>
+    </div>
+    <div class="component">
+      <div class="icon">⚖️</div>
+      <div class="name">SMOTE</div>
+      <div class="desc">Rééquilibrage synthétique des classes (minorité ~3.5%)</div>
+    </div>
+    <div class="component">
+      <div class="icon">📐</div>
+      <div class="name">StandardScaler</div>
+      <div class="desc">Normalisation des features numériques</div>
+    </div>
+    <div class="component">
+      <div class="icon">🎯</div>
+      <div class="name">Seuil Adaptatif</div>
+      <div class="desc">Optimisation F1-Score sur jeu de validation</div>
+    </div>
+  </div>
+</div>
+
+<div class="arrow-container"><div class="arrow"></div><span class="arrow-label">Features prêtes (X)</span></div>
+
+<!-- ─── COUCHE MODÈLE ─── -->
+<div class="arch-layer layer-model">
+  <div class="layer-header">🧠 COUCHE MODÈLE — Ensemble Learning 3 Niveaux</div>
+  <div class="layer-body">
+    <div class="component success" style="flex:1; min-width:200px;">
+      <div class="icon">🌲</div>
+      <div class="name">Niveau 1 — Isolation Forest</div>
+      <div class="desc"><strong>Non supervisé</strong><br>Filtre les anomalies évidentes<br>Cible: réduction du volume à analyser</div>
+    </div>
+    <div class="component success highlight" style="flex:1.5; min-width:250px;">
+      <div class="icon">⚡</div>
+      <div class="name">Niveau 2 — XGBoost</div>
+      <div class="desc"><strong>Supervisé — Modèle principal</strong><br>Classification fraude/non-fraude<br>Cible: F1 ≥ 0.85, Recall ≥ 0.92</div>
+    </div>
+    <div class="component success" style="flex:1; min-width:200px;">
+      <div class="icon">🔮</div>
+      <div class="name">Niveau 3 — LSTM (optionnel)</div>
+      <div class="desc"><strong>Deep Learning</strong><br>Patterns temporels séquentiels<br>Séquences de transactions suspectes</div>
+    </div>
+  </div>
+</div>
+
+<div class="arrow-container"><div class="arrow"></div><span class="arrow-label">Prédiction + scores</span></div>
+
+<!-- ─── COUCHE EXPLICABILITÉ ─── -->
+<div class="arch-layer" style="border: 1px solid rgba(255,183,77,0.4); background: rgba(255,183,77,0.05);">
+  <div class="layer-header" style="background: linear-gradient(135deg, #e65100, #f57c00);">💡 COUCHE EXPLICABILITÉ — XAI / SHAP</div>
+  <div class="layer-body">
+    <div class="component highlight">
+      <div class="icon">🔍</div>
+      <div class="name">SHAP TreeExplainer</div>
+      <div class="desc">Explication de chaque prédiction individuelle<br>Top-3 variables influentes + valeurs SHAP</div>
+    </div>
+    <div class="component">
+      <div class="icon">📊</div>
+      <div class="name">SHAP Summary</div>
+      <div class="desc">Importance globale des variables<br>beeswarm plot + bar plot</div>
+    </div>
+    <div class="component">
+      <div class="icon">📈</div>
+      <div class="name">SHAP Waterfall</div>
+      <div class="desc">Explication pas-à-pasant pour chaque transaction<br>Visualisation pour les analystes</div>
+    </div>
+    <div class="component">
+      <div class="icon">📋</div>
+      <div class="name">Conformité BCEAO</div>
+      <div class="desc">Justification transparente des décisions automatisées<br>Réponse à HS3 du mémoire</div>
+    </div>
+  </div>
+</div>
+
+<div class="arrow-container"><div class="arrow"></div><span class="arrow-label">Explications + décision</span></div>
+
+<!-- ─── COUCHE DONNÉES ─── -->
+<div class="arch-layer layer-data">
+  <div class="layer-header">💾 COUCHE DONNÉES — Persistance</div>
+  <div class="layer-body">
+    <div class="component">
+      <div class="icon">🗄️</div>
+      <div class="name">SQLite</div>
+      <div class="desc">predictions, feedback, models<br>Audit trail complet</div>
+    </div>
+    <div class="component">
+      <div class="icon">📦</div>
+      <div class="name">Modèles (pkl)</div>
+      <div class="desc">xgb_model.pkl, isolation_forest.pkl<br>scaler.pkl, freq_maps.pkl, ohe_encoder.pkl</div>
+    </div>
+    <div class="component">
+      <div class="icon">📊</div>
+      <div class="name">Métriques (JSON)</div>
+      <div class="desc">metrics.json, top_features.json<br>best_threshold.npy</div>
+    </div>
+    <div class="component">
+      <div class="icon">📂</div>
+      <div class="name">Données brutes</div>
+      <div class="desc">train_transaction.csv (IEEE-CIS)<br>~590K transactions, 3.5% fraudes</div>
+    </div>
+  </div>
+</div>
+
+</div><!-- arch-container -->
+
+<!-- ─── FLUX DE DONNÉES ─── -->
+<div class="info-grid" style="max-width:1100px; margin:40px auto 0;">
+  <div class="info-card">
+    <h3>🔄 Flux de prédiction (temps réel)</h3>
+    <div class="data-flow" style="flex-direction:column; align-items:flex-start;">
+      <div class="flow-step">1. Transaction reçue (API / Dashboard)</div>
+      <div style="color:#42a5f5;text-align:center;width:100%;">↓</div>
+      <div class="flow-step">2. Feature Engineering automatique</div>
+      <div style="color:#42a5f5;text-align:center;width:100%;">↓</div>
+      <div class="flow-step">3. Isolation Forest → filtre anomalies</div>
+      <div style="color:#42a5f5;text-align:center;width:100%;">↓</div>
+      <div class="flow-step">4. XGBoost → score de fraude</div>
+      <div style="color:#42a5f5;text-align:center;width:100%;">↓</div>
+      <div class="flow-step">5. SHAP → explication de la décision</div>
+      <div style="color:#42a5f5;text-align:center;width:100%;">↓</div>
+      <div class="flow-step">6. Alerte + feedback analyste</div>
+    </div>
+  </div>
+
+  <div class="info-card">
+    <h3>👤 Matrice RBAC — Rôles et permissions</h3>
+    <table style="width:100%; font-size:0.75rem; border-collapse:collapse;">
+      <tr style="border-bottom:1px solid #1a3a5c;"><th style="text-align:left;padding:6px;color:#42a5f5;">Action</th><th>Analyste</th><th>Gest. Risques</th><th>Admin</th></tr>
+      <tr><td style="padding:6px;">Consulter dashboard</td><td style="text-align:center;">✅</td><td style="text-align:center;">✅</td><td style="text-align:center;">✅</td></tr>
+      <tr><td style="padding:6px;">Analyser TX</td><td style="text-align:center;">✅</td><td style="text-align:center;">✅</td><td style="text-align:center;">✅</td></tr>
+      <tr><td style="padding:6px;">Donner feedback</td><td style="text-align:center;">✅</td><td style="text-align:center;">✅</td><td style="text-align:center;">✅</td></tr>
+      <tr><td style="padding:6px;">Voir SHAP détaillé</td><td style="text-align:center;">✅</td><td style="text-align:center;">✅</td><td style="text-align:center;">✅</td></tr>
+      <tr><td style="padding:6px;">Valider/révoquer alertes</td><td style="text-align:center;">❌</td><td style="text-align:center;">✅</td><td style="text-align:center;">✅</td></tr>
+      <tr><td style="padding:6px;">Voir métriques benchmark</td><td style="text-align:center;">❌</td><td style="text-align:center;">✅</td><td style="text-align:center;">✅</td></tr>
+      <tr><td style="padding:6px;">Configurer seuils</td><td style="text-align:center;">❌</td><td style="text-align:center;">✅</td><td style="text-align:center;">✅</td></tr>
+      <tr><td style="padding:6px;">Lancer réentraînement</td><td style="text-align:center;">❌</td><td style="text-align:center;">❌</td><td style="text-align:center;">✅</td></tr>
+      <tr><td style="padding:6px;">Gérer utilisateurs</td><td style="text-align:center;">❌</td><td style="text-align:center;">❌</td><td style="text-align:center;">✅</td></tr>
+      <tr><td style="padding:6px;">Voir logs audit</td><td style="text-align:center;">❌</td><td style="text-align:center;">❌</td><td style="text-align:center;">✅</td></tr>
+    </table>
+  </div>
+
+  <div class="info-card">
+    <h3>📊 Métriques cibles (Chapitre IV)</h3>
+    <ul>
+      <li><strong>F1-Score</strong> ≥ 0.85 (équilibre précision/rappel)</li>
+      <li><strong>Recall</strong> ≥ 0.92 (taux de fraudes détectées — HS1)</li>
+      <li><strong>AUC-PR</strong> ≥ 0.70 (Precision-Recall — pertinent sur données déséquilibrées)</li>
+      <li><strong>Latence</strong> < 100ms par transaction</li>
+      <li><strong>Faux positifs</strong> ≤ 1% (confort analyste)</li>
+      <li><strong>Explicabilité</strong> SHAP sur 100% des décisions (HS3)</li>
+    </ul>
+  </div>
+
+  <div class="info-card">
+    <h3>📁 Structure du projet</h3>
+    <pre style="font-size:0.7rem; color:#b0bec5; overflow-x:auto;">FRAUDX/
+├── src/
+│   └── api.py              # FastAPI REST
+├── fraudx/
+│   ├── __init__.py
+│   ├── cli.py              # CLI utilisateur
+│   ├── config.py           # Configuration
+│   ├── db.py               # SQLite (predictions, feedback, models)
+│   ├── metrics.py          # Métriques mémoire (HS1, HS3)
+│   ├── preprocessing.py    # Feature engineering + prétraitement
+│   └── synthetic_data.py   # Données synthétiques Togo
+├── models/                 # Modèles entraînés
+│   ├── xgb_model.pkl
+│   ├── isolation_forest.pkl
+│   ├── scaler.pkl
+│   ├── freq_maps.pkl
+│   ├── best_threshold.npy
+│   ├── metrics.json
+│   └── top_features.json
+├── data/                   # Données
+│   └── fraudx.db           # SQLite
+├── notebooks/              # Jupyter notebooks
+├── tests/                  # Tests unitaires
+├── app_streamlit.py        # Dashboard Streamlit
+├── benchmark.py            # Comparaison des modèles
+├── generate_figures.py     # Figures du mémoire
+├── dashboard.html          # Dashboard standalone HTML
+├── architecture.html       # Ce fichier
+├── train.py                # Pipeline d'entraînement
+├── retrain.py              # Réentraînement automatique
+└── simulate_stream.py      # Simulation temps réel</pre>
+  </div>
+</div>
+
+<div class="footer">
+  🛡️ FRAUDX v2.0 — Schéma d'architecture technique (Annexe D du mémoire)<br>
+  Conception d'un système d'IA pour la détection de la fraude bancaire — Cas du Togo
+</div>
+
+</body>
+</html>

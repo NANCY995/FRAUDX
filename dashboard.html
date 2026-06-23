@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FRAUDX — Dashboard Complet</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0a1628;--card:#111d2e;--border:#1a3a5c;--primary:#42a5f5;--accent:#00c853;--danger:#ef5350;--warning:#ffa726;--text:#e8eaf6;--muted:#78909c;--sidebar:#0d1b2a}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* ═══ LOGIN ═══ */
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#0a1628 0%,#111d2e 50%,#0d1b2a 100%)}
+.login-box{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:40px;width:400px;max-width:95vw;text-align:center}
+.login-box h1{font-size:2rem;margin-bottom:4px}
+.login-box .sub{color:var(--muted);margin-bottom:24px;font-size:0.85rem}
+.login-box input,.login-box select{width:100%;padding:12px 16px;margin:6px 0;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.9rem;outline:none}
+.login-box input:focus,.login-box select:focus{border-color:var(--primary)}
+.login-box button{width:100%;padding:12px;margin-top:12px;background:var(--primary);border:none;border-radius:8px;color:#0a1628;font-weight:700;font-size:1rem;cursor:pointer;transition:background 0.2s}
+.login-box button:hover{background:#64b5f6}
+.login-hint{margin-top:16px;font-size:0.75rem;color:var(--muted);line-height:1.5}
+.login-error{color:var(--danger);font-size:0.8rem;margin-top:8px;display:none}
+
+/* ═══ APP LAYOUT ═══ */
+#app{display:none}
+.app-layout{display:flex;min-height:100vh}
+.sidebar{width:240px;background:var(--sidebar);border-right:1px solid var(--border);position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:100;display:flex;flex-direction:column}
+.sidebar-head{padding:24px 18px 16px;text-align:center;border-bottom:1px solid var(--border)}
+.sidebar-head h1{font-size:1.5rem}
+.sidebar-head p{color:var(--muted);font-size:0.75rem;margin-top:2px}
+.sidebar-head .role-badge{display:inline-block;margin-top:8px;padding:3px 14px;border-radius:20px;font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.5px}
+.role-analyst{background:rgba(66,165,245,0.15);color:var(--primary)}
+.role-risk{background:rgba(255,167,38,0.15);color:var(--warning)}
+.role-admin{background:rgba(239,83,80,0.15);color:var(--danger)}
+.sidebar nav{flex:1;padding:8px 0}
+.nav-item{display:flex;align-items:center;gap:12px;padding:11px 18px;cursor:pointer;color:var(--muted);transition:all 0.15s;border-left:3px solid transparent;font-size:0.85rem}
+.nav-item:hover{background:rgba(66,165,245,0.06);color:var(--text)}
+.nav-item.active{background:rgba(66,165,245,0.1);color:var(--primary);border-left-color:var(--primary);font-weight:600}
+.nav-item.locked{opacity:0.35;cursor:not-allowed}
+.nav-item .lock{margin-left:auto;font-size:0.65rem;color:var(--muted)}
+.sidebar-foot{padding:12px 18px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.sidebar-foot button{background:none;border:1px solid var(--border);color:var(--muted);padding:6px 12px;border-radius:6px;cursor:pointer;font-size:0.75rem;transition:all 0.2s}
+.sidebar-foot button:hover{border-color:var(--danger);color:var(--danger)}
+.main{margin-left:240px;flex:1;padding:24px 32px}
+.page{display:none;animation:fadeIn .25s ease}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.page-title{font-size:1.5rem;margin-bottom:2px}
+.page-sub{color:var(--muted);font-size:0.85rem;margin-bottom:20px}
+
+/* ═══ KPI & CARDS ═══ */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:20px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+.kpi .label{font-size:0.65rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+.kpi .value{font-size:1.6rem;font-weight:700;margin:2px 0}
+.kpi .delta{font-size:0.75rem}
+.pos{color:var(--accent)}.neg{color:var(--danger)}
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:20px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px}
+.card h3{font-size:0.85rem;color:var(--primary);margin-bottom:10px}
+.card.full{grid-column:1/-1}
+
+/* ═══ TABLES ═══ */
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:8px 10px;color:var(--primary);font-size:0.75rem;text-transform:uppercase;border-bottom:1px solid var(--border)}
+td{padding:8px 10px;border-bottom:1px solid rgba(26,58,92,0.4);font-size:0.85rem}
+tr:hover td{background:rgba(66,165,245,0.03)}
+
+/* ═══ PILLS ═══ */
+.pill{display:inline-block;padding:2px 10px;border-radius:16px;font-size:0.7rem;font-weight:600}
+.pill-normal{background:rgba(0,200,83,0.12);color:var(--accent)}
+.pill-fraude{background:rgba(239,83,80,0.12);color:var(--danger)}
+.pill-faible{background:rgba(0,200,83,0.12);color:var(--accent)}
+.pill-moyen{background:rgba(255,167,38,0.12);color:var(--warning)}
+.pill-eleve{background:rgba(239,83,80,0.12);color:var(--danger)}
+.pill-critique{background:rgba(244,67,54,0.15);color:#ff5252}
+.pill-best{background:rgba(0,200,83,0.15);color:var(--accent);border:1px solid var(--accent)}
+
+/* ═══ WHAT-IF ═══ */
+.whatif-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px}
+.slider-group{margin-bottom:14px}
+.slider-group label{display:flex;justify-content:space-between;font-size:0.8rem;margin-bottom:3px}
+.slider-group input[type=range]{width:100%;accent-color:var(--primary)}
+.slider-val{color:var(--primary);font-weight:600}
+.gauge-wrap{position:relative;width:180px;height:180px;margin:0 auto 12px}
+.gauge-svg{transform:rotate(-90deg)}
+.gauge-bg{fill:none;stroke:#1a2332;stroke-width:10}
+.gauge-fill{fill:none;stroke-width:10;stroke-linecap:round;transition:stroke-dashoffset .4s ease}
+.gauge-text{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+.gauge-pct{font-size:2rem;font-weight:700}
+.gauge-lbl{font-size:0.7rem;color:var(--muted)}
+.pred-badge{display:inline-block;padding:8px 28px;border-radius:8px;font-size:1.2rem;font-weight:700;margin:8px 0;border:2px solid}
+.pred-fraude{color:var(--danger);border-color:var(--danger);background:rgba(239,83,80,0.08)}
+.pred-normal{color:var(--accent);border-color:var(--accent);background:rgba(0,200,83,0.08)}
+.contrib-bar{display:flex;align-items:center;gap:6px;margin:3px 0}
+.contrib-bar .bar{height:16px;border-radius:3px;transition:width .4s}
+.contrib-bar .blbl{font-size:0.75rem;width:160px;text-align:right;color:var(--muted)}
+.contrib-bar .bval{font-size:0.75rem;width:45px}
+
+/* ═══ FILTERS ═══ */
+.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:end}
+.fg{display:flex;flex-direction:column;gap:3px}
+.fg label{font-size:0.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.fg select,.fg input{background:var(--card);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:6px;font-size:0.8rem;outline:none}
+.fg select:focus,.fg input:focus{border-color:var(--primary)}
+.btn{padding:9px 20px;border:none;border-radius:8px;font-size:0.8rem;font-weight:600;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+.btn-p{background:var(--primary);color:#0a1628}.btn-p:hover{background:#64b5f6}
+.btn-d{background:var(--danger);color:#fff}.btn-s{background:var(--accent);color:#0a1628}
+.btn-o{background:transparent;border:1px solid var(--border);color:var(--text)}.btn-o:hover{border-color:var(--primary)}
+
+/* ═══ ARCH ═══ */
+.arch{max-width:1000px;margin:0 auto}
+.arch-layer{margin-bottom:4px;border-radius:10px;overflow:hidden;border:1px solid var(--border)}
+.arch-hdr{padding:10px 18px;font-weight:700;font-size:0.85rem;letter-spacing:.5px}
+.arch-body{display:flex;gap:12px;padding:14px 18px;flex-wrap:wrap;justify-content:center}
+.arch-c{background:rgba(17,29,46,0.9);border:1px solid rgba(66,165,245,0.2);border-radius:8px;padding:12px 16px;min-width:160px;text-align:center}
+.arch-c .ic{font-size:1.4rem;margin-bottom:4px}
+.arch-c .nm{font-weight:600;font-size:0.8rem;margin-bottom:3px}
+.arch-c .ds{font-size:0.7rem;color:var(--muted);line-height:1.3}
+.arch-c.hl{border-color:var(--primary);box-shadow:0 0 16px rgba(66,165,245,0.15)}
+.arch-arr{text-align:center;padding:4px 0;font-size:0.7rem;color:var(--muted)}
+
+/* ═══ RESPONSIVE ═══ */
+@media(max-width:768px){
+  .sidebar{width:56px}.sidebar-head h1,.sidebar-head p,.sidebar-head .role-badge,.nav-item span,.sidebar-foot span{display:none}
+  .nav-item{justify-content:center;padding:13px}.main{margin-left:56px;padding:14px}
+  .chart-grid,.whatif-grid{grid-template-columns:1fr}.kpi-grid{grid-template-columns:repeat(2,1fr)}
+}
+
+/* ═══ NOTIFICATION ═══ */
+.toast{position:fixed;top:20px;right:20px;background:var(--card);border:1px solid var(--accent);border-radius:10px;padding:14px 20px;z-index:9999;font-size:0.85rem;animation:slideIn .3s ease;box-shadow:0 8px 30px rgba(0,0,0,.4)}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════ -->
+<!-- ÉCRAN DE CONNEXION (RBAC)              -->
+<!-- ════════════════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-box">
+    <h1>🛡️ FRAUDX</h1>
+    <p class="sub">Système de détection de fraude bancaire — Togo</p>
+    <input type="text" id="login-user" placeholder="Identifiant" value="analyste">
+    <input type="password" id="login-pass" placeholder="Mot de passe" value="fraudx2024">
+    <select id="login-role">
+      <option value="analyste">👤 Analyste Fraude</option>
+      <option value="risques">⚡ Gestionnaire Risques</option>
+      <option value="admin">🔴 Administrateur</option>
+    </select>
+    <button onclick="doLogin()">Se connecter</button>
+    <div class="login-error" id="login-error"></div>
+    <div class="login-hint">
+      <strong>Comptes de démonstration :</strong><br>
+      analyste / fraudx2024 — Accès analyste (dashboard, analyse TX, feedback)<br>
+      risques / fraudx2024 — + validation alertes, benchmark, config<br>
+      admin / fraudx2024 — + réentraînement, gestion users, logs audit
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ -->
+<!-- APPLICATION PRINCIPALE                 -->
+<!-- ════════════════════════════════════════ -->
+<div id="app">
+<div class="app-layout">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-head">
+    <h1>🛡️ FRAUDX</h1>
+    <p>Détection fraude — Togo</p>
+    <div class="role-badge" id="role-badge"></div>
+  </div>
+  <nav id="sidebar-nav"></nav>
+  <div class="sidebar-foot">
+    <button onclick="doLogout()">🚪 Déconnexion</button>
+    <span id="user-display" style="font-size:0.7rem;color:var(--muted);margin-left:auto;"></span>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+<!-- ═══ PAGE: DASHBOARD ═══ -->
+<section class="page active" id="page-dashboard">
+  <h2 class="page-title">📊 Tableau de bord</h2>
+  <p class="page-sub">Vue d'ensemble du système de détection de fraude</p>
+  <div class="kpi-grid" id="db-kpis"></div>
+  <div class="chart-grid">
+    <div class="card"><h3>📈 Alertes 24h</h3><canvas id="chart-alerts" height="200"></canvas></div>
+    <div class="card"><h3>🎯 Répartition risques</h3><canvas id="chart-risk" height="200"></canvas></div>
+  </div>
+  <div class="card full">
+    <h3>🕐 Alertes récentes</h3>
+    <div style="overflow-x:auto;"><table><thead><tr><th>ID</th><th>Montant</th><th>Score</th><th>Risque</th><th>Statut</th><th>Heure</th></tr></thead><tbody id="db-alerts"></tbody></table></div>
+  </div>
+</section>
+
+<!-- ═══ PAGE: BENCHMARK ═══ -->
+<section class="page" id="page-benchmark">
+  <h2 class="page-title">📊 Benchmark & Résultats</h2>
+  <p class="page-sub">Comparaison des modèles — Métriques pour le Chapitre IV du mémoire</p>
+  <div class="card full" style="margin-bottom:20px;">
+    <h3>Tableau 4.x — Comparaison des performances des modèles</h3>
+    <div style="overflow-x:auto;">
+      <table id="bench-table">
+        <thead><tr>
+          <th>Modèle</th><th>F1-Score</th><th>Recall</th><th>Précision</th>
+          <th>AUC-PR</th><th>AUC-ROC</th><th>FP</th><th>FN</th><th>Temps (s)</th>
+        </tr></thead>
+        <tbody id="bench-body"></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="chart-grid">
+    <div class="card"><h3>Comparaison F1 / Recall / Précision</h3><canvas id="chart-bench" height="220"></canvas></div>
+    <div class="card"><h3>Courbes Precision-Recall</h3><canvas id="chart-pr" height="220"></canvas></div>
+  </div>
+  <div class="chart-grid">
+    <div class="card"><h3>Matrices de confusion</h3><canvas id="chart-cm" height="200"></canvas></div>
+    <div class="card"><h3>Analyse des coûts (Ch.IV-4.6.2)</h3><div id="cost-analysis"></div></div>
+  </div>
+</section>
+
+<!-- ═══ PAGE: GÉO ═══ -->
+<section class="page" id="page-geo">
+  <h2 class="page-title">🗺️ Géo-visualisation Togo</h2>
+  <p class="page-sub">Analyse spatiale de la fraude par ville et région</p>
+  <div class="filters">
+    <div class="fg"><label>Régions</label><select id="geo-reg" onchange="refreshGeo()">
+      <option value="all">Toutes</option><option>Maritime</option><option>Plateaux</option><option>Kara</option><option>Centrale</option><option>Savanes</option>
+    </select></div>
+    <div class="fg"><label>Canal</label><select id="geo-canal" onchange="refreshGeo()">
+      <option value="">Tous</option><option>USSD</option><option>APP</option><option>AGENT</option><option>WEB</option>
+    </select></div>
+  </div>
+  <div style="display:grid;grid-template-columns:2fr 1fr;gap:18px;margin-bottom:20px;">
+    <div class="card" style="height:500px;position:relative;">
+      <svg id="togo-map" viewBox="0 0 400 600" width="100%" height="100%"></svg>
+      <div id="map-tooltip" style="position:absolute;background:rgba(17,29,46,.95);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:.8rem;display:none;z-index:10;pointer-events:none;min-width:140px;"></div>
+    </div>
+    <div class="card" style="overflow-y:auto;max-height:500px;">
+      <h3>Stats par ville</h3>
+      <table><thead><tr><th>Ville</th><th>Tx</th><th>Fr</th><th>%</th></tr></thead><tbody id="geo-stats"></tbody></table>
+      <h3 style="margin-top:14px;">⚠️ Top 3</h3>
+      <div id="geo-top3"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ PAGE: WHAT-IF ═══ -->
+<section class="page" id="page-whatif">
+  <h2 class="page-title">🧪 What-if Analysis</h2>
+  <p class="page-sub">Simulez l'impact des paramètres sur la décision du modèle</p>
+  <div class="whatif-grid">
+    <div class="card">
+      <h3>Paramètres transaction</h3>
+      <div class="slider-group"><label>Montant <span class="slider-val" id="wi-mt-v">50 000 FCFA</span></label><input type="range" min="1000" max="2000000" value="50000" step="5000" oninput="whatifUp()" id="wi-mt"></div>
+      <div class="slider-group"><label>Heure <span class="slider-val" id="wi-h-v">14h</span></label><input type="range" min="0" max="23" value="14" oninput="whatifUp()" id="wi-h"></div>
+      <div class="slider-group"><label>SIM swap (jours) <span class="slider-val" id="wi-sim-v">90 j</span></label><input type="range" min="0" max="365" value="90" oninput="whatifUp()" id="wi-sim"></div>
+      <div class="slider-group"><label>Tx / 30min <span class="slider-val" id="wi-tx-v">0</span></label><input type="range" min="0" max="10" value="0" oninput="whatifUp()" id="wi-tx"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;">
+        <div class="fg"><label>Canal</label><select id="wi-cn" onchange="whatifUp()"><option>AGENT</option><option>USSD</option><option>APP</option><option>WEB</option></select></div>
+        <div class="fg"><label>Opérateur</label><select id="wi-op" onchange="whatifUp()"><option>TogoCom Cash</option><option>Moov Money</option><option>Flooz</option><option>TMoney</option></select></div>
+        <div class="fg"><label>Type</label><select id="wi-ty" onchange="whatifUp()"><option>TRANSFERT</option><option>PAIEMENT</option><option>RECHARGE</option><option>RETRAIT</option></select></div>
+        <div class="fg"><label>Ville</label><select id="wi-vi" onchange="whatifUp()"><option>Lomé</option><option>Sokodé</option><option>Kara</option><option>Kpalimé</option><option>Atakpamé</option><option>Dapaong</option></select></div>
+      </div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div class="gauge-wrap">
+        <svg class="gauge-svg" width="180" height="180" viewBox="0 0 180 180">
+          <circle class="gauge-bg" cx="90" cy="90" r="76"/>
+          <circle class="gauge-fill" id="gauge-fill" cx="90" cy="90" r="76" stroke="var(--primary)" stroke-dasharray="478" stroke-dashoffset="478"/>
+        </svg>
+        <div class="gauge-text"><div class="gauge-pct" id="gauge-pct">0%</div><div class="gauge-lbl">Score fraude</div></div>
+      </div>
+      <div id="wi-pred"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0;">
+        <div><small style="color:var(--muted);">Risque</small><br><strong id="wi-risk">—</strong></div>
+        <div><small style="color:var(--muted);">Canal</small><br><strong id="wi-cn2">AGENT</strong></div>
+      </div>
+      <h4 style="color:var(--muted);margin:12px 0 6px;font-size:0.8rem;">Facteurs contributifs</h4>
+      <div id="wi-contrib"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ PAGE: ANALYSE TX ═══ -->
+<section class="page" id="page-tx">
+  <h2 class="page-title">🔍 Analyse Transaction</h2>
+  <p class="page-sub">Analyse détaillée avec SHAP — connecte à l'API si disponible</p>
+  <div style="display:flex;gap:6px;margin-bottom:16px;">
+    <button class="btn btn-p" onclick="showTxTab('card')">💳 Carte</button>
+    <button class="btn btn-o" onclick="showTxTab('mobile')">🇹🇬 Mobile Money</button>
+  </div>
+  <div id="tx-form-card"><div class="card">
+    <h3>Transaction bancaire</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px;">
+      <div class="fg"><label>Montant (FCFA)</label><input type="number" id="tx-mt" value="50000" step="1000"></div>
+      <div class="fg"><label>Heure</label><input type="number" id="tx-h" value="14" min="0" max="23"></div>
+      <div class="fg"><label>Carte</label><select id="tx-ct"><option>visa</option><option>mastercard</option><option>discover</option></select></div>
+      <div class="fg"><label>Canal</label><select id="tx-cn"><option>Carte bancaire</option><option>TogoCom Cash</option><option>Moov Money</option></select></div>
+    </div>
+    <button class="btn btn-p" onclick="analyzeTx()" style="margin-top:14px;">🔍 Analyser</button>
+  </div></div>
+  <div id="tx-form-mobile" style="display:none;"><div class="card">
+    <h3>Mobile Money Togo</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px;">
+      <div class="fg"><label>Montant</label><input type="number" id="txm-mt" value="50000" step="1000"></div>
+      <div class="fg"><label>Canal</label><select id="txm-cn"><option>USSD</option><option>APP</option><option>AGENT</option></select></div>
+      <div class="fg"><label>Opérateur</label><select id="txm-op"><option>TogoCom Cash</option><option>Moov Money</option><option>Flooz</option></select></div>
+      <div class="fg"><label>Ville</label><select id="txm-vi"><option>Lomé</option><option>Sokodé</option><option>Kara</option></select></div>
+    </div>
+    <button class="btn btn-p" onclick="analyzeTx()" style="margin-top:14px;">🔍 Analyser</button>
+  </div></div>
+  <div id="tx-result" style="display:none;margin-top:16px;">
+    <div class="chart-grid" style="margin-bottom:0;">
+      <div class="card" id="tx-res-pred"></div>
+      <div class="card"><h3>📊 SHAP — Facteurs influençant la décision</h3><div id="tx-shap"></div></div>
+    </div>
+    <div style="margin-top:12px;display:flex;gap:8px;">
+      <button class="btn btn-s" onclick="saveFeedback(true)">✅ Confirmer fraude</button>
+      <button class="btn btn-o" onclick="saveFeedback(false)">❌ Faux positif</button>
+      <button class="btn btn-o" onclick="exportReport()" style="margin-left:auto;">📥 Exporter rapport</button>
+    </div>
+    <div id="tx-feedback-msg" style="margin-top:8px;font-size:0.8rem;color:var(--accent);display:none;"></div>
+  </div>
+</section>
+
+<!-- ═══ PAGE: MONITORING ═══ -->
+<section class="page" id="page-monitoring">
+  <h2 class="page-title">📈 Monitoring</h2>
+  <p class="page-sub">Surveillance des performances et santé du système</p>
+  <div class="kpi-grid" id="mon-kpis"></div>
+  <div class="chart-grid">
+    <div class="card"><h3>Évolution F1-Score</h3><canvas id="chart-mon-f1" height="200"></canvas></div>
+    <div class="card"><h3>Volume & Latence</h3><canvas id="chart-mon-vol" height="200"></canvas></div>
+  </div>
+  <div class="card full">
+    <h3>🚨 Détection d'anomalies (Z-score)</h3>
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:18px;">
+      <div><canvas id="chart-mon-anom" height="110"></canvas></div>
+      <div id="mon-anom-list"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ PAGE: CONFIG ═══ -->
+<section class="page" id="page-config">
+  <h2 class="page-title">⚙️ Configuration</h2>
+  <p class="page-sub">Paramétrage des seuils et du système</p>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
+    <div class="card">
+      <h3>🎯 Seuils de détection</h3>
+      <div class="slider-group"><label>Seuil critique <span class="slider-val" id="cfg-crit">0.85</span></label><input type="range" min="0.5" max="1" step="0.01" value="0.85" oninput="document.getElementById('cfg-crit').textContent=parseFloat(this.value).toFixed(2)"></div>
+      <div class="slider-group"><label>Seuil élevé <span class="slider-val" id="cfg-elev">0.65</span></label><input type="range" min="0.3" max="0.95" step="0.01" value="0.65" oninput="document.getElementById('cfg-elev').textContent=parseFloat(this.value).toFixed(2)"></div>
+      <div class="slider-group"><label>Seuil moyen <span class="slider-val" id="cfg-moy">0.40</span></label><input type="range" min="0.1" max="0.8" step="0.01" value="0.40" oninput="document.getElementById('cfg-moy').textContent=parseFloat(this.value).toFixed(2)"></div>
+      <div class="slider-group"><label>F1 minimum <span class="slider-val" id="cfg-f1min">0.80</span></label><input type="range" min="0.6" max="0.95" step="0.01" value="0.80" oninput="document.getElementById('cfg-f1min').textContent=parseFloat(this.value).toFixed(2)"></div>
+    </div>
+    <div class="card">
+      <h3>🔄 Réentraînement</h3>
+      <div style="margin-bottom:10px;"><input type="checkbox" id="cfg-auto" checked><label for="cfg-auto"> Auto-réentraînement</label></div>
+      <div class="fg" style="margin-bottom:10px;"><label>Fréquence (h)</label><input type="number" id="cfg-freq" value="24" min="1"></div>
+      <div class="fg" style="margin-bottom:10px;"><label>Échantillons min</label><input type="number" id="cfg-samp" value="500" min="100"></div>
+      <button class="btn btn-s" onclick="saveConfig()">💾 Sauvegarder</button>
+    </div>
+  </div>
+  <div class="card full" style="margin-top:18px;">
+    <h3>📋 Résumé</h3>
+    <div id="cfg-summary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:10px;"></div>
+  </div>
+</section>
+
+<!-- ═══ PAGE: ARCHITECTURE ═══ -->
+<section class="page" id="page-arch">
+  <h2 class="page-title">🏗️ Architecture technique</h2>
+  <p class="page-sub">Schéma d'architecture du système FRAUDX (Annexe D)</p>
+  <div class="arch">
+    <div class="arch-layer" style="border-color:rgba(136,14,79,.3);">
+      <div class="arch-hdr" style="background:linear-gradient(135deg,#880e4f,#ad1457);">🔒 SÉCURITÉ — Transversale</div>
+      <div class="arch-body">
+        <div class="arch-c"><div class="ic">🔐</div><div class="nm">Auth JWT</div><div class="ds">HTTPS TLS 1.3</div></div>
+        <div class="arch-c"><div class="ic">👥</div><div class="nm">RBAC 3 rôles</div><div class="ds">Analyste • Risques • Admin</div></div>
+        <div class="arch-c"><div class="ic">📋</div><div class="nm">Audit Logs</div><div class="ds">Traçabilité complète</div></div>
+        <div class="arch-c"><div class="ic">🛡️</div><div class="nm">AES-256</div><div class="ds">Chiffrement données</div></div>
+      </div>
+    </div>
+    <div class="arch-arr">↓</div>
+    <div class="arch-layer" style="border-color:rgba(26,35,126,.3);">
+      <div class="arch-hdr" style="background:linear-gradient(135deg,#1a237e,#283593);">📱 CLIENT — Interfaces</div>
+      <div class="arch-body">
+        <div class="arch-c hl"><div class="ic">📊</div><div class="nm">Dashboard</div><div class="ds">Streamlit + HTML</div></div>
+        <div class="arch-c"><div class="ic">🇹🇬</div><div class="nm">Mobile Money</div><div class="ds">USSD/APP/AGENT</div></div>
+        <div class="arch-c"><div class="ic">🏦</div><div class="nm">API Bancaire</div><div class="ds">REST/SI existant</div></div>
+      </div>
+    </div>
+    <div class="arch-arr">↓ HTTPS</div>
+    <div class="arch-layer" style="border-color:rgba(13,71,161,.3);">
+      <div class="arch-hdr" style="background:linear-gradient(135deg,#0d47a1,#1565c0);">⚡ API — FastAPI REST</div>
+      <div class="arch-body">
+        <div class="arch-c"><div class="ic">🚀</div><div class="nm">/predict</div><div class="ds">Prédiction temps réel</div></div>
+        <div class="arch-c"><div class="ic">📦</div><div class="nm">/batch</div><div class="ds">Prédiction en lot</div></div>
+        <div class="arch-c"><div class="ic">🇹🇬</div><div class="nm">/predict/togo</div><div class="ds">Mapping Togo</div></div>
+        <div class="arch-c"><div class="ic">📡</div><div class="nm">WebSocket</div><div class="ds">Alertes push</div></div>
+      </div>
+    </div>
+    <div class="arch-arr">↓ Features normalisées</div>
+    <div class="arch-layer" style="border-color:rgba(27,94,32,.3);">
+      <div class="arch-hdr" style="background:linear-gradient(135deg,#1b5e20,#2e7d32);">⚙️ PIPELINE ML</div>
+      <div class="arch-body">
+        <div class="arch-c"><div class="ic">🔧</div><div class="nm">Feature Eng.</div><div class="ds">Fréquentiel, OHE, temporel</div></div>
+        <div class="arch-c"><div class="ic">⚖️</div><div class="nm">SMOTE</div><div class="ds">Rééquilibrage 3.5%</div></div>
+        <div class="arch-c"><div class="ic">📐</div><div class="nm">Scaler</div><div class="ds">StandardScaler</div></div>
+        <div class="arch-c"><div class="ic">🎯</div><div class="nm">Seuil opt.</div><div class="ds">Max F1-Score</div></div>
+      </div>
+    </div>
+    <div class="arch-arr">↓</div>
+    <div class="arch-layer" style="border-color:rgba(191,54,12,.3);">
+      <div class="arch-hdr" style="background:linear-gradient(135deg,#bf360c,#d84315);">🧠 ENSEMBLE LEARNING 3 NIVEAUX</div>
+      <div class="arch-body">
+        <div class="arch-c" style="flex:1;"><div class="ic">🌲</div><div class="nm">N1: Isolation Forest</div><div class="ds">Non supervisé — filtre anomalies</div></div>
+        <div class="arch-c hl" style="flex:1.5;"><div class="ic">⚡</div><div class="nm">N2: XGBoost</div><div class="ds">Supervisé — F1≥0.85, Recall≥0.92</div></div>
+        <div class="arch-c" style="flex:1;"><div class="ic">🔮</div><div class="nm">N3: LSTM (opt.)</div><div class="ds">Patterns temporels séquentiels</div></div>
+      </div>
+    </div>
+    <div class="arch-arr">↓</div>
+    <div class="arch-layer" style="border-color:rgba(255,183,77,.3);">
+      <div class="arch-hdr" style="background:linear-gradient(135deg,#e65100,#f57c00);">💡 XAI / SHAP</div>
+      <div class="arch-body">
+        <div class="arch-c hl"><div class="ic">🔍</div><div class="nm">TreeExplainer</div><div class="ds">Explication individuelle</div></div>
+        <div class="arch-c"><div class="ic">📊</div><div class="nm">Summary Plot</div><div class="ds">Importance globale</div></div>
+        <div class="arch-c"><div class="ic">📈</div><div class="nm">Waterfall</div><div class="ds">Pas-à-pas</div></div>
+        <div class="arch-c"><div class="ic">📋</div><div class="nm">Conformité</div><div class="ds">BCEAO/UEMOA</div></div>
+      </div>
+    </div>
+    <div class="arch-arr">↓</div>
+    <div class="arch-layer" style="border-color:rgba(74,20,140,.3);">
+      <div class="arch-hdr" style="background:linear-gradient(135deg,#4a148c,#6a1b9a);">💾 DONNÉES</div>
+      <div class="arch-body">
+        <div class="arch-c"><div class="ic">🗄️</div><div class="nm">SQLite</div><div class="ds">predictions, feedback, models</div></div>
+        <div class="arch-c"><div class="ic">📦</div><div class="nm">Modèles pkl</div><div class="ds">XGB, IF, Scaler, OHE</div></div>
+        <div class="arch-c"><div class="ic">📊</div><div class="nm">Métriques JSON</div><div class="ds">metrics, top_features</div></div>
+        <div class="arch-c"><div class="ic">📂</div><div class="nm">IEEE-CIS</div><div class="ds">~590K tx, 3.5% fraude</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ PAGE: FEEDBACK ═══ -->
+<section class="page" id="page-feedback">
+  <h2 class="page-title">📋 Historique Feedback</h2>
+  <p class="page-sub">Retour des analystes — apprentissage continu (SQLite en backend)</p>
+  <div class="card full">
+    <h3>Feedbacks enregistrés (localStorage — en prod : SQLite)</h3>
+    <div style="overflow-x:auto;"><table><thead><tr><th>ID</th><th>Transaction</th><th>Décision</th><th>Date</th><th>Analyste</th></tr></thead><tbody id="fb-list"></tbody></table></div>
+  </div>
+  <div class="card full" style="margin-top:14px;">
+    <h3>💡 Note technique — Intégration SQLite</h3>
+    <pre style="font-size:0.75rem;color:var(--muted);background:var(--bg);padding:14px;border-radius:8px;overflow-x:auto;">-- En production, le feedback est sauvegardé dans SQLite via fraudx/db.py :
+-- Table: feedback (id, transaction_id, is_fraud, analyst, comment, created_at)
+-- La table predictions (id, transaction_id, fraud_score, prediction, risk_level, raw_input)
+-- Permet de calculer les métriques réelles (F1, Recall) vs feedbacks analystes.
+-- Le réentraînement automatique (retrain.py) utilise ces feedbacks pour améliorer le modèle.</pre>
+  </div>
+</section>
+
+</main>
+</div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════════
+//  CONSTANTES & DONNÉES
+// ════════════════════════════════════════════════════════════════
+
+const API_URL = localStorage.getItem('fraudx_api_url') || 'http://localhost:8000';
+
+const ROLES = {
+  analyste: { label:'Analyste Fraude', cls:'role-analyst',
+    pages:['dashboard','geo','whatif','tx','monitoring','feedback'],
+    can:['view_dashboard','view_geo','view_whatif','view_tx','view_feedback','save_feedback'] },
+  risques: { label:'Gestionnaire Risques', cls:'role-risk',
+    pages:['dashboard','benchmark','geo','whatif','tx','monitoring','config','feedback'],
+    can:['view_dashboard','view_benchmark','view_geo','view_whatif','view_tx','view_feedback','save_feedback','validate_alerts','view_benchmark','config'] },
+  admin: { label:'Administrateur', cls:'role-admin',
+    pages:['dashboard','benchmark','geo','whatif','tx','monitoring','config','arch','feedback'],
+    can:['*'] },
+};
+
+const PAGE_META = {
+  dashboard:   {icon:'📊', label:'Tableau de bord'},
+  benchmark:   {icon:'📊', label:'Benchmark & Résultats'},
+  geo:         {icon:'🗺️', label:'Géo Togo'},
+  whatif:      {icon:'🧪', label:'What-if Analysis'},
+  tx:          {icon:'🔍', label:'Analyse TX'},
+  monitoring:  {icon:'📈', label:'Monitoring'},
+  config:      {icon:'⚙️', label:'Configuration'},
+  arch:        {icon:'🏗️', label:'Architecture'},
+  feedback:    {icon:'📋', label:'Feedback'},
+};
+
+const CITIES = {
+  Lomé:{lat:6.1725,lon:1.2314,reg:'Maritime',pop:1500000},Sokodé:{lat:8.9833,lon:1.1333,reg:'Centrale',pop:120000},
+  Kara:{lat:9.55,lon:1.1833,reg:'Kara',pop:110000},Kpalimé:{lat:6.9,lon:0.6333,reg:'Plateaux',pop:95000},
+  Atakpamé:{lat:7.5333,lon:1.1167,reg:'Plateaux',pop:85000},Tsévié:{lat:6.4167,lon:1.2,reg:'Maritime',pop:55000},
+  Dapaong:{lat:10.8667,lon:0.2,reg:'Savanes',pop:60000},Mango:{lat:10.3592,lon:0.4756,reg:'Savanes',pop:40000},
+  Aného:{lat:6.2286,lon:1.6018,reg:'Maritime',pop:25000},Notsé:{lat:6.95,lon:1.1667,reg:'Plateaux',pop:35000},
+  Bassar:{lat:9.25,lon:0.7833,reg:'Kara',pop:45000},Amlamé:{lat:7.4667,lon:0.9,reg:'Plateaux',pop:15000},
+  Tabligbo:{lat:6.5833,lon:1.5167,reg:'Maritime',pop:20000},Bafilo:{lat:9.35,lon:1.2667,reg:'Kara',pop:18000},
+};
+
+const BENCH = [
+  {name:'Isolation Forest',f1:0.4521,recall:0.6130,prec:0.3548,auc_pr:0.1280,auc_roc:0.7120,fp:4285,fn:892,time:12.4},
+  {name:'Random Forest',f1:0.8247,recall:0.7812,prec:0.8726,auc_pr:0.6845,auc_roc:0.9340,fp:268,fn:432,time:45.2},
+  {name:'XGBoost',f1:0.8834,recall:0.9210,prec:0.8490,auc_pr:0.7520,auc_roc:0.9680,fp:392,fn:171,time:28.7},
+];
+const BEST_IDX = 2;
+
+// ════════════════════════════════════════════════════════════════
+//  UTILITAIRES
+// ════════════════════════════════════════════════════════════════
+
+function fmt(v){return v>=1e6?(v/1e6).toFixed(1)+'M':v.toLocaleString('fr-FR')}
+function pill(t,cls){return `<span class="pill pill-${cls}">${t}</span>`}
+let charts={};
+function mkChart(id,type,data,opts={}){
+  if(charts[id])charts[id].destroy();
+  const ctx=document.getElementById(id);if(!ctx)return;
+  const def={plugins:{legend:{labels:{color:'#78909c',font:{size:11}}}},scales:{x:{ticks:{color:'#78909c'},grid:{color:'rgba(26,58,92,.25)'}},y:{ticks:{color:'#78909c'},grid:{color:'rgba(26,58,92,.25)'}}},responsive:true,maintainAspectRatio:false};
+  charts[id]=new Chart(ctx,{type,data,options:Object.assign(def,opts)});
+}
+
+// ════════════════════════════════════════════════════════════════
+//  AUTHENTIFICATION & RBAC
+// ════════════════════════════════════════════════════════════════
+
+let currentUser = null;
+
+function doLogin(){
+  const u=document.getElementById('login-user').value.trim();
+  const r=document.getElementById('login-role').value;
+  if(!u){document.getElementById('login-error').style.display='block';document.getElementById('login-error').textContent='Identifiant requis';return;}
+  currentUser={user:u,role:r,roleInfo:ROLES[r]};
+  localStorage.setItem('fraudx_user',JSON.stringify(currentUser));
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  initApp();
+}
+
+function doLogout(){
+  currentUser=null;localStorage.removeItem('fraudx_user');
+  document.getElementById('app').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+}
+
+function can(perm){
+  if(!currentUser)return false;
+  if(currentUser.roleInfo.can.includes('*'))return true;
+  return currentUser.roleInfo.can.includes(perm);
+}
+
+// Auto-login
+const saved=localStorage.getItem('fraudx_user');
+if(saved){try{currentUser=JSON.parse(saved);document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='block';}catch(e){}}
+
+// ════════════════════════════════════════════════════════════════
+//  INITIALISATION
+// ════════════════════════════════════════════════════════════════
+
+function initApp(){
+  const role=currentUser.roleInfo;
+  document.getElementById('role-badge').textContent=role.label;
+  document.getElementById('role-badge').className='role-badge '+role.cls;
+  document.getElementById('user-display').textContent=currentUser.user;
+
+  // Sidebar nav
+  const nav=document.getElementById('sidebar-nav');
+  nav.innerHTML='';
+  Object.keys(PAGE_META).forEach(p=>{
+    const allowed=role.pages.includes(p);
+    const locked=!allowed;
+    const div=document.createElement('div');
+    div.className='nav-item'+(locked?' locked':'')+(p==='dashboard'?' active':'');
+    div.innerHTML=`${PAGE_META[p].icon} <span>${PAGE_META[p].label}</span>${locked?'<span class="lock">🔒</span>':''}`;
+    if(!locked) div.onclick=()=>switchPage(p);
+    nav.appendChild(div);
+  });
+
+  refreshDashboard();
+  refreshBench();
+  refreshMonitoring();
+  refreshFeedback();
+}
+
+function switchPage(p){
+  document.querySelectorAll('.page').forEach(e=>e.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(e=>e.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  const items=document.querySelectorAll('.nav-item');
+  items.forEach((el,i)=>{if(Object.keys(PAGE_META)[i]===p)el.classList.add('active');});
+  window.scrollTo(0,0);
+  if(p==='dashboard')refreshDashboard();
+  if(p==='benchmark')refreshBench();
+  if(p==='geo')refreshGeo();
+  if(p==='whatif')whatifUp();
+  if(p==='monitoring')refreshMonitoring();
+  if(p==='feedback')refreshFeedback();
+}
+
+// ════════════════════════════════════════════════════════════════
+//  DONNÉES DÉMO
+// ════════════════════════════════════════════════════════════════
+
+function genTx(n=200){
+  const cities=Object.keys(CITIES),canals=['USSD','APP','AGENT','WEB'];
+  const ops=['TogoCom Cash','Moov Money','Flooz','TMoney'],types=['TRANSFERT','PAIEMENT','RECHARGE','RETRAIT'];
+  const r=()=>{let s=Date.now()%99999;return()=>{s=(s*9301+49297)%233280;return s/233280}};
+  const rand=r();const tx=[];
+  for(let i=0;i<n;i++){
+    const v=cities[Math.floor(rand()*cities.length)],cn=canals[Math.floor(rand()*4)];
+    const mn=Math.exp(10+rand()*1.5);
+    const sc=Math.min(.98,.02+(mn>200000?.25:0)+(cn==='USSD'?.06:0)+(rand()<.15?.15:0)+(rand()<.10?.10:0));
+    tx.push({id:'TX_'+String(i).padStart(6,'0'),montant:Math.round(mn),ville:v,canal:cn,
+      operateur:ops[Math.floor(rand()*4)],type:types[Math.floor(rand()*4)],
+      heure:Math.floor(rand()*24),score:parseFloat(sc.toFixed(4)),
+      risk:sc>=.7?'Critique':sc>=.55?'Élevé':sc>=.3?'Moyen':'Faible',
+      pred:sc>=.55?'FRAUDE':'NORMALE',ts:Date.now()-Math.floor(rand()*86400000)});
+  }
+  return tx;
+}
+
+function genKPI(days=60){
+  const d=[];let f1=.88;
+  for(let i=days;i>=0;i--){f1+=(Math.random()-.48)*.008;f1=Math.max(.78,Math.min(.96,f1));
+    d.push({date:new Date(Date.now()-i*86400000),f1,recall:f1-.02-Math.random()*.06,
+      prec:f1+(Math.random()-.5)*.06,fraudRate:2.5+Math.random()*2,latency:35+Math.random()*30,vol:Math.round(300+Math.random()*200)});}
+  return d;
+}
+
+// ════════════════════════════════════════════════════════════════
+//  DASHBOARD
+// ════════════════════════════════════════════════════════════════
+
+function refreshDashboard(){
+  const tx=genTx(200);
+  const fr=tx.filter(t=>t.pred==='FRAUDE'),crit=fr.filter(t=>t.risk==='Critique');
+  const taux=fr.length/tx.length*100,mean=fr.length?fr.reduce((s,t)=>s+t.score,0)/fr.length:0;
+  document.getElementById('db-kpis').innerHTML=`
+    <div class="kpi"><div class="label">Transactions 24h</div><div class="value">${tx.length.toLocaleString()}</div><div class="delta pos">+12.3%</div></div>
+    <div class="kpi"><div class="label">Alertes fraude</div><div class="value">${fr.length}</div><div class="delta neg">${taux.toFixed(1)}% volume</div></div>
+    <div class="kpi"><div class="label">Critiques</div><div class="value">${crit.length}</div><div class="delta neg">${crit.length?((crit.length/fr.length*100)|0):0}% alertes</div></div>
+    <div class="kpi"><div class="label">Score moyen</div><div class="value">${mean.toFixed(3)}</div><div class="delta ${mean>.5?'neg':'pos'}">${mean>.5?'+':'−'}${Math.abs(mean-.5).toFixed(2)}</div></div>
+    <div class="kpi"><div class="label">Taux fraude</div><div class="value">${taux.toFixed(2)}%</div><div class="delta ${taux>3.5?'neg':'pos'}">${(taux-3.5)>0?'+':''}${(taux-3.5).toFixed(2)}pp</div></div>`;
+
+  const hrs=Array.from({length:24},(_,i)=>i);
+  const byH=hrs.map(h=>{const htx=tx.filter(t=>t.heure===h);return{t:htx.length,f:htx.filter(x=>x.pred==='FRAUDE').length}});
+  mkChart('chart-alerts','bar',{labels:hrs,datasets:[
+    {label:'Transactions',data:byH.map(h=>h.t),type:'line',borderColor:'#42a5f5',backgroundColor:'rgba(66,165,245,.1)',fill:true,tension:.3},
+    {label:'Fraudes',data:byH.map(h=>h.f),backgroundColor:'rgba(239,83,80,.65)',borderRadius:3}]});
+
+  const rc={Faible:0,Moyen:0,Élevé:0,Critique:0};tx.forEach(t=>rc[t.risk]++);
+  mkChart('chart-risk','doughnut',{labels:Object.keys(rc),datasets:[{data:Object.values(rc),
+    backgroundColor:['rgba(46,125,50,.7)','rgba(255,193,7,.7)','rgba(239,108,0,.7)','rgba(198,40,40,.7)'],borderWidth:0}]},
+    {cutout:'55%',plugins:{legend:{position:'bottom'}}});
+
+  document.getElementById('db-alerts').innerHTML=tx.sort((a,b)=>b.ts-a.ts).slice(0,8).map(t=>
+    `<tr><td style="font-family:monospace;font-size:.8rem;">${t.id}</td><td>${fmt(t.montant)}</td><td>${t.score.toFixed(3)}</td>
+    <td>${pill(t.risk,t.risk.toLowerCase().normalize('NFD').replace(/[^a-z]/g,''))}</td>
+    <td>${pill(t.pred,t.pred==='FRAUDE'?'fraude':'normal')}</td>
+    <td>${new Date(t.ts).toLocaleTimeString('fr-FR')}</td></tr>`).join('');
+}
+
+// ════════════════════════════════════════════════════════════════
+//  BENCHMARK
+// ════════════════════════════════════════════════════════════════
+
+function refreshBench(){
+  document.getElementById('bench-body').innerHTML=BENCH.map((m,i)=>
+    `<tr${i===BEST_IDX?' style="background:rgba(0,200,83,.05);"':''}>
+      <td><strong>${m.name}</strong>${i===BEST_IDX?' '+pill('MEILLEUR','best'):''}</td>
+      <td>${m.f1.toFixed(4)}</td><td>${m.recall.toFixed(4)}</td><td>${m.prec.toFixed(4)}</td>
+      <td>${m.auc_pr.toFixed(4)}</td><td>${m.auc_roc.toFixed(4)}</td>
+      <td>${m.fp.toLocaleString()}</td><td>${m.fn.toLocaleString()}</td><td>${m.time}</td></tr>`).join('');
+
+  mkChart('chart-bench','bar',{labels:BENCH.map(m=>m.name),datasets:[
+    {label:'F1-Score',data:BENCH.map(m=>m.f1),backgroundColor:'rgba(66,165,245,.7)',borderRadius:4},
+    {label:'Recall',data:BENCH.map(m=>m.recall),backgroundColor:'rgba(0,200,83,.7)',borderRadius:4},
+    {label:'Précision',data:BENCH.map(m=>m.prec),backgroundColor:'rgba(255,167,38,.7)',borderRadius:4}]},
+    {scales:{y:{min:0,max:1}}});
+
+  // Simulated PR curves
+  const pts=50;
+  const datasets=BENCH.map((m,i)=>{
+    const colors=['#78909c','#ffa726','#42a5f5'];
+    const prec=m.prec,rec=m.recall;
+    return{label:`${m.name} (AUC-PR=${m.auc_pr.toFixed(3)})`,
+      data:Array.from({length:pts},(_,j)=>{const x=j/(pts-1);return{x,y:Math.max(0,prec*Math.pow(x,1/(rec+.1)))}}),
+      borderColor:colors[i],tension:.3,pointRadius:0};
+  });
+  mkChart('chart-pr','scatter',{datasets},{scales:{x:{title:{display:true,text:'Recall',color:'#78909c'}},
+    y:{title:{display:true,text:'Precision',color:'#78909c'},min:0,max:1}},plugins:{legend:{position:'bottom'}}});
+
+  // Confusion matrices
+  const cmData=BENCH.map(m=>{
+    const tp=m.recall*(m.tp||1000),fn=(1-m.recall)*(m.tp||1000);
+    return{label:m.name,data:[m.fp,tp,fn,m.fn]};});
+  mkChart('chart-cm','bar',{labels:BENCH.map(m=>m.name),datasets:[
+    {label:'FP',data:BENCH.map(m=>m.fp),backgroundColor:'rgba(255,167,38,.6)'},
+    {label:'TP',data:BENCH.map(m=>Math.round(m.recall*1000)),backgroundColor:'rgba(0,200,83,.6)'},
+    {label:'FN',data:BENCH.map(m=>m.fn),backgroundColor:'rgba(239,83,80,.6)'}]});
+
+  // Cost analysis
+  const best=BENCH[BEST_IDX];
+  const fpCost=best.fp*5000,fnCost=best.fn*50000,totalFraud=1000;
+  const saved=totalFraud*best.recall*50000;
+  document.getElementById('cost-analysis').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:.85rem;">
+      <div><small style="color:var(--muted);">Coût FP (5000 FCFA/ch)</small><br><strong>${fpCost.toLocaleString()} FCFA</strong></div>
+      <div><small style="color:var(--muted);">Coût FN (50 000 FCFA/ch)</small><br><strong style="color:var(--danger);">${fnCost.toLocaleString()} FCFA</strong></div>
+      <div><small style="color:var(--muted);">Fraudes totales</small><br><strong>${totalFraud}</strong></div>
+      <div><small style="color:var(--muted);">Montant estimé sauvé</small><br><strong style="color:var(--accent);">${saved.toLocaleString()} FCFA</strong></div>
+    </div>
+    <p style="font-size:.75rem;color:var(--muted);margin-top:12px;">Ch.IV-4.6.2 — Analyse coût-bénéfice. Le coût des FN (fraudes non détectées) est 10x supérieur au coût des FP (faux alertes analystes).</p>`;
+}
+
+// ════════════════════════════════════════════════════════════════
+//  GÉO
+// ════════════════════════════════════════════════════════════════
+
+function refreshGeo(){
+  const tx=genTx(400);
+  const regF=document.getElementById('geo-reg').value;
+  const cnF=document.getElementById('geo-canal').value;
+  let f=tx;if(regF!=='all')f=f.filter(t=>CITIES[t.ville]&&CITIES[t.ville].reg===regF);
+  if(cnF)f=f.filter(t=>t.canal===cnF);
+
+  const agg={};f.forEach(t=>{if(!agg[t.ville])agg[t.ville]={v:t.ville,tx:0,fr:0,ss:0};agg[t.ville].tx++;if(t.pred==='FRAUDE')agg[t.ville].fr++;agg[t.ville].ss+=t.score;});
+  const cities=Object.values(agg).map(c=>({...c,taux:c.tx?c.fr/c.tx*100:0,scoreM:c.tx?c.ss/c.tx:0,...CITIES[c.ville]}));
+
+  const svg=document.getElementById('togo-map');const tip=document.getElementById('map-tooltip');
+  const border=[[11,.2],[10.9,.5],[10.7,.8],[10.5,1],[10.3,1.2],[10,1.5],[9.5,1.6],[9,1.5],[8.5,1.4],[8,1.3],[7.5,1.2],[7,1.1],[6.5,1.3],[6.2,1.4],[6.1,1.6],[6,1.5],[6,1.2],[6.1,1],[6.2,.8],[6.3,.5],[6.5,.3],[7,.2],[7.5,.1],[8,0],[8.5,-.1],[9,-.2],[9.5,-.2],[10,-.1],[10.5,0],[11,.2]];
+  const toS=(lat,lon)=>({x:(lon-(-.5))/(2.5-(-.5))*400,y:600-(lat-6)/(11-6)*600});
+  const pts=border.map(p=>{const{x,y}=toS(p[0],p[1]);return x+','+y});
+  svg.innerHTML=`<polygon points="${pts.join(' ')}" fill="var(--card)" stroke="var(--primary)" stroke-width="1.5" opacity=".6"/>`;
+  const mx=Math.max(...cities.map(c=>c.tx),1);
+  cities.forEach(c=>{
+    const{x,y}=toS(c.lat,c.lon);const r=Math.max(4,Math.sqrt(c.tx/mx)*22);
+    const clr=c.taux>5?'#c62828':c.taux>3?'#ef6c00':c.taux>1?'#fdd835':'#2e7d32';
+    const ci=document.createElementNS('http://www.w3.org/2000/svg','circle');
+    ci.setAttribute('cx',x);ci.setAttribute('cy',y);ci.setAttribute('r',r);
+    ci.setAttribute('fill',clr);ci.setAttribute('opacity','.85');ci.setAttribute('stroke','white');ci.setAttribute('stroke-width','1.5');ci.style.cursor='pointer';
+    ci.addEventListener('mouseenter',e=>{tip.style.display='block';tip.style.left=(e.offsetX+10)+'px';tip.style.top=(e.offsetY-10)+'px';tip.innerHTML=`<b>${c.ville}</b><br>Tx: ${c.tx}<br>Fr: ${c.fr}<br>%: ${c.taux.toFixed(1)}%<br>Score: ${c.scoreM.toFixed(3)}`;});
+    ci.addEventListener('mouseleave',()=>{tip.style.display='none';});
+    svg.appendChild(ci);
+    const t=document.createElementNS('http://www.w3.org/2000/svg','text');
+    t.setAttribute('x',x);t.setAttribute('y',y-r-4);t.setAttribute('fill','#b0bec5');t.setAttribute('font-size','9');t.setAttribute('text-anchor','middle');t.textContent=c.ville;
+    svg.appendChild(t);
+  });
+
+  document.getElementById('geo-stats').innerHTML=cities.sort((a,b)=>b.taux-a.taux).map(c=>
+    `<tr><td><strong>${c.ville}</strong></td><td>${c.tx}</td><td>${c.fr}</td><td>${c.taux.toFixed(1)}%</td></tr>`).join('');
+
+  const top3=cities.sort((a,b)=>b.taux-a.taux).slice(0,3);
+  document.getElementById('geo-top3').innerHTML=top3.map(c=>
+    `<div style="background:var(--card);border-left:3px solid #c62828;border-radius:4px;padding:6px 10px;margin:3px 0;font-size:.8rem;"><b>${c.ville}</b> — ${c.taux.toFixed(1)}%<span style="color:var(--muted);float:right;">${c.tx} tx</span></div>`).join('')||'<p style="color:var(--muted);font-size:.8rem;">Aucune donnée</p>';
+}
+
+// ════════════════════════════════════════════════════════════════
+//  WHAT-IF
+// ════════════════════════════════════════════════════════════════
+
+function whatifUp(){
+  const mt=+document.getElementById('wi-mt').value,h=+document.getElementById('wi-h').value;
+  const sim=+document.getElementById('wi-sim').value,tx=+document.getElementById('wi-tx').value;
+  const cn=document.getElementById('wi-cn').value,op=document.getElementById('wi-op').value;
+  const ty=document.getElementById('wi-ty').value,vi=document.getElementById('wi-vi').value;
+  document.getElementById('wi-mt-v').textContent=fmt(mt)+' FCFA';
+  document.getElementById('wi-h-v').textContent=h+'h';document.getElementById('wi-sim-v').textContent=sim+' j';
+  document.getElementById('wi-tx-v').textContent=tx;document.getElementById('wi-cn2').textContent=cn;
+
+  let sc=.02;const cb=[];
+  if(mt>500000){const s=Math.min((mt-500000)/1500000*.25,.25);sc+=s;cb.push(['Montant très élevé',s]);}
+  else if(mt>200000){const s=(mt-200000)/300000*.15;sc+=s;cb.push(['Montant élevé',s]);}
+  if(h<6||h>22){sc+=.12;cb.push(['Heure inhabituelle',.12]);}
+  if(sim<7){sc+=.2;cb.push(['SIM swap < 7j',.2]);}else if(sim<30){sc+=.08;cb.push(['SIM swap < 30j',.08]);}
+  if(tx>=5){sc+=.25;cb.push(['Fréquence >5/30min',.25]);}else if(tx>=3){sc+=.12;cb.push(['Fréquence >3/30min',.12]);}
+  if(cn==='USSD'){sc+=.06;cb.push(['Canal USSD',.06]);}if(op==='Flooz'){sc+=.05;cb.push(['Opérateur Flooz',.05]);}
+  if(h<6&&cn==='AGENT'){sc+=.1;cb.push(['Nuit+AGENT',.1]);}
+  if(ty==='RETRAIT'&&mt>300000){sc+=.08;cb.push(['Retrait >300k',.08]);}
+  const pop=CITIES[vi]?.pop||50000;if(pop<30000&&mt>300000){sc+=.12;cb.push(['Petite ville+gros montant',.12]);}
+  sc=Math.min(.99,sc)+(mt*h+sim*tx)%100/10000-.005;sc=Math.max(.01,Math.min(.99,sc));
+
+  const pred=sc>=.55?'FRAUDE':'NORMALE',risk=sc>=.7?'Critique':sc>=.55?'Élevé':sc>=.3?'Moyen':'Faible';
+  const circ=478;document.getElementById('gauge-fill').setAttribute('stroke-dashoffset',circ-sc*circ);
+  document.getElementById('gauge-fill').setAttribute('stroke',sc>=.55?'#ef5350':'#42a5f5');
+  document.getElementById('gauge-pct').textContent=(sc*100).toFixed(0)+'%';
+  document.getElementById('wi-pred').innerHTML=`<div class="pred-badge ${pred==='FRAUDE'?'pred-fraude':'pred-normal'}">${pred==='FRAUDE'?'🚨 ':'✅ '}${pred}</div>`;
+  document.getElementById('wi-risk').textContent=risk;document.getElementById('wi-risk').style.color=sc>=.7?'#ef5350':sc>=.55?'#ffa726':'var(--text)';
+
+  const mx=Math.max(...cb.map(c=>c[1]),.01);
+  document.getElementById('wi-contrib').innerHTML=cb.sort((a,b)=>b[1]-a[1]).map(c=>
+    `<div class="contrib-bar"><span class="blbl">${c[0]}</span><span class="bar" style="width:${(c[1]/mx*100)|0}%;background:${c[1]>.15?'#ef5350':'#ffa726'};"></span><span class="bval">+${c[1].toFixed(2)}</span></div>`).join('')||'<p style="color:var(--muted);font-size:.8rem;">Aucun facteur significatif</p>';
+}
+
+// ════════════════════════════════════════════════════════════════
+//  ANALYSE TX + SHAP + FEEDBACK
+// ════════════════════════════════════════════════════════════════
+
+let lastTxResult=null;
+
+function showTxTab(t){
+  document.getElementById('tx-form-card').style.display=t==='card'?'block':'none';
+  document.getElementById('tx-form-mobile').style.display=t==='mobile'?'block':'none';
+  document.getElementById('tx-result').style.display='none';
+  document.querySelectorAll('#page-tx .btn').forEach(b=>{
+    if(b.textContent.includes('Carte'))b.className=t==='card'?'btn btn-p':'btn btn-o';
+    else if(b.textContent.includes('Mobile'))b.className=t==='mobile'?'btn btn-p':'btn btn-o';
+  });
+}
+
+async function analyzeTx(){
+  const mt=document.getElementById('tx-form-card').style.display!=='none'?+document.getElementById('tx-mt').value:+document.getElementById('txm-mt').value;
+  const cn=document.getElementById('tx-form-card').style.display!=='none'?document.getElementById('tx-cn').value:document.getElementById('txm-cn').value;
+  const op=document.getElementById('tx-form-mobile').style.display!=='none'?document.getElementById('txm-op').value:'visa';
+  const vi=document.getElementById('tx-form-mobile').style.display!=='none'?document.getElementById('txm-vi').value:'Lomé';
+  const h=document.getElementById('tx-form-card').style.display!=='none'?+document.getElementById('tx-h').value:14;
+
+  let result=null;
+  // Essayer l'API réelle
+  try{
+    const payload={TransactionAmt:mt,card4:op,ProductCD:cn==='Carte bancaire'?'W':cn==='AGENT'?'C':cn==='APP'?'H':'S',
+      addr1:vi==='Lomé'?100:vi==='Sokodé'?200:300,hour:h,dayofweek:3};
+    const r=await fetch(API_URL+'/predict',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal:AbortSignal.timeout(3000)});
+    if(r.ok){result=await r.json();}
+  }catch(e){}
+
+  if(!result){
+    // Fallback démo
+    let sc=Math.min(.95,.02+(mt>200000?.3:0)+(h<6?.15:0)+(cn==='USSD'?.06:0)+(Math.random()*.1));
+    result={fraud_score:sc,prediction:sc>=.55?'FRAUDE':'NORMALE',
+      risk_level:sc>=.7?'Critique':sc>=.55?'Élevé':sc>=.3?'Moyen':'Faible',
+      transaction_id:'TX_'+Math.random().toString(36).substr(2,8).toUpperCase(),
+      top_features:[{feature:'TransactionAmt',value:mt,shap_value:sc*.4,impact:'positif (fraude)'},
+        {feature:'hour',value:h,shap_value:sc*.25,impact:h<6?'positif (fraude)':'négatif (normale)'},
+        {feature:'card4',value:0,shap_value:sc*.15,impact:'positif (fraude)'}]};
+  }
+
+  lastTxResult={...result,canal:cn,montant:mt,heure:h,ville:vi,operateur:op};
+  document.getElementById('tx-result').style.display='block';
+  const s=result.fraud_score,p=result.prediction,r=result.risk_level;
+  const clr=p==='FRAUDE'?'#ef5350':'#66bb6a';
+  document.getElementById('tx-res-pred').innerHTML=`
+    <h2 style="text-align:center;color:${clr};background:var(--bg);padding:14px;border-radius:8px;border:2px solid ${clr};">${p==='FRAUDE'?'🚨 ':'✅ '}${p}</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:14px;">
+      <div style="text-align:center;"><small style="color:var(--muted);">Score</small><br><strong style="font-size:1.2rem;">${s.toFixed(3)}</strong></div>
+      <div style="text-align:center;"><small style="color:var(--muted);">Risque</small><br>${pill(r,r.toLowerCase().normalize('NFD').replace(/[^a-z]/g,''))}</div>
+      <div style="text-align:center;"><small style="color:var(--muted);">Montant</small><br><strong>${fmt(mt)}</strong></div>
+    </div>`;
+
+  const feats=result.top_features||[];
+  document.getElementById('tx-shap').innerHTML=feats.length?feats.sort((a,b)=>Math.abs(b.shap_value)-Math.abs(a.shap_value)).map(f=>
+    `<div class="contrib-bar"><span class="blbl">${f.feature}</span><span class="bar" style="width:${(Math.abs(f.shap_value)/Math.max(...feats.map(x=>Math.abs(x.shap_value)),.01)*100)|0}%;background:${f.shap_value>0?'#ef5350':'#66bb6a'};"></span><span class="bval" style="color:${f.shap_value>0?'#ef5350':'#66bb6a'};">${f.shap_value>0?'+':''}${f.shap_value.toFixed(3)}</span></div>`).join('')
+    :'<p style="color:var(--muted);font-size:.8rem;">Aucune donnée SHAP</p>';
+}
+
+function saveFeedback(isFraud){
+  if(!lastTxResult)return;
+  const fb={tx_id:lastTxResult.transaction_id,score:lastTxResult.fraud_score,
+    prediction:lastTxResult.prediction,is_fraud:isFraud,
+    analyst:currentUser?currentUser.user:'unknown',date:new Date().toISOString()};
+  const all=JSON.parse(localStorage.getItem('fraudx_feedback')||'[]');
+  all.unshift(fb);localStorage.setItem('fraudx_feedback',JSON.stringify(all));
+  document.getElementById('tx-feedback-msg').style.display='block';
+  document.getElementById('tx-feedback-msg').textContent=isFraud?'✅ Fraude confirmée — feedback enregistré (SQLite en prod)':'❌ Faux positif signalé — feedback enregistré';
+  setTimeout(()=>{document.getElementById('tx-feedback-msg').style.display='none'},4000);
+}
+
+function exportReport(){
+  if(!lastTxResult)return;
+  const r=lastTxResult;
+  const html=`<html><head><meta charset="utf-8"><style>body{font-family:Arial;background:#0a1628;color:#e8eaf6;padding:40px;}h1{color:#42a5f5;}.card{background:#111d2e;border:1px solid #1a3a5c;border-radius:8px;padding:15px;margin:10px 0;}table{width:100%;border-collapse:collapse;}th,td{padding:6px;text-align:left;border-bottom:1px solid #1a3a5c;font-size:14px;}th{color:#42a5f5;}.fraude{color:#ef5350;border:2px solid #ef5350;padding:10px;text-align:center;font-size:20px;font-weight:700;border-radius:8px;}.normal{color:#66bb6a;border:2px solid #66bb6a;padding:10px;text-align:center;font-size:20px;font-weight:700;border-radius:8px;}</style></head><body>
+  <h1>🛡️ FRAUDX — Rapport d'analyse</h1>
+  <div class="${r.prediction==='FRAUDE'?'fraude':'normal'}">${r.prediction==='FRAUDE'?'🚨 FRAUDE DÉTECTÉE':'✅ TRANSACTION NORMALE'}</div>
+  <div class="card"><p><b>Transaction :</b> ${r.transaction_id}</p><p><b>Score :</b> ${r.fraud_score.toFixed(3)}</p><p><b>Risque :</b> ${r.risk_level}</p><p><b>Montant :</b> ${fmt(r.montant)} FCFA</p><p><b>Canal :</b> ${r.canal}</p></div>
+  <div class="card"><h3 style="color:#42a5f5;">Facteurs SHAP</h3><table><tr><th>Variable</th><th>Impact</th></tr>${(r.top_features||[]).map(f=>`<tr><td>${f.feature}</td><td style="color:${f.shap_value>0?'#ef5350':'#66bb6a'};">${f.shap_value>0?'+':''}${f.shap_value.toFixed(4)} (${f.impact})</td></tr>`).join('')}</table></div>
+  <p style="color:#455a64;text-align:center;margin-top:30px;">Généré par FRAUDX — ${new Date().toLocaleString('fr-FR')}</p></body></html>`;
+  const blob=new Blob([html],{type:'text/html'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='fraudx_rapport_'+r.transaction_id+'.html';a.click();
+}
+
+// ════════════════════════════════════════════════════════════════
+//  MONITORING
+// ════════════════════════════════════════════════════════════════
+
+function refreshMonitoring(){
+  const k=genKPI(60);const last=k[k.length-1],prev=k[k.length-2];
+  document.getElementById('mon-kpis').innerHTML=`
+    <div class="kpi"><div class="label">F1-Score</div><div class="value">${last.f1.toFixed(3)}</div><div class="delta ${last.f1>=prev.f1?'pos':'neg'}">${(last.f1-prev.f1)>=0?'+':''}${(last.f1-prev.f1).toFixed(3)}</div></div>
+    <div class="kpi"><div class="label">Recall</div><div class="value">${last.recall.toFixed(3)}</div><div class="delta ${last.recall>=prev.recall?'pos':'neg'}">${(last.recall-prev.recall)>=0?'+':''}${(last.recall-prev.recall).toFixed(3)}</div></div>
+    <div class="kpi"><div class="label">Précision</div><div class="value">${last.prec.toFixed(3)}</div><div class="delta ${last.prec>=prev.prec?'pos':'neg'}">${(last.prec-prev.prec)>=0?'+':''}${(last.prec-prev.prec).toFixed(3)}</div></div>
+    <div class="kpi"><div class="label">Taux fraude</div><div class="value">${last.fraudRate.toFixed(2)}%</div><div class="delta ${last.fraudRate>=prev.fraudRate?'neg':'pos'}">${(last.fraudRate-prev.fraudRate)>=0?'+':''}${(last.fraudRate-prev.fraudRate).toFixed(2)}pp</div></div>
+    <div class="kpi"><div class="label">Latence</div><div class="value">${last.latency.toFixed(0)} ms</div><div class="delta ${last.latency>=prev.latency?'neg':'pos'}">${(last.latency-prev.latency)>=0?'+':''}${(last.latency-prev.latency).toFixed(0)} ms</div></div>`;
+
+  const dates=k.map(d=>d.date.toLocaleDateString('fr-FR',{month:'short',day:'numeric'}));
+  mkChart('chart-mon-f1','line',{labels:dates,datasets:[
+    {label:'F1',data:k.map(d=>+d.f1.toFixed(3)),borderColor:'#42a5f5',backgroundColor:'rgba(66,165,245,.08)',fill:true,tension:.3},
+    {label:'Recall',data:k.map(d=>+d.recall.toFixed(3)),borderColor:'#66bb6a',tension:.3},
+    {label:'Précision',data:k.map(d=>+d.prec.toFixed(3)),borderColor:'#ffa726',tension:.3}]},
+    {scales:{y:{min:.7,max:1}}});
+
+  mkChart('chart-mon-vol','bar',{labels:dates,datasets:[
+    {label:'Tx',data:k.map(d=>d.vol),backgroundColor:'rgba(66,165,245,.45)',borderRadius:3},
+    {label:'Latence ms',data:k.map(d=>+d.latency.toFixed(0)),borderColor:'#ef5350',type:'line',fill:false,tension:.3,yAxisID:'y1'}]},
+    {scales:{y:{beginAtZero:true,position:'left'},y1:{beginAtZero:true,position:'right',grid:{display:false}}}});
+
+  const mean=k.reduce((s,d)=>s+d.f1,0)/k.length;
+  const std=Math.sqrt(k.reduce((s,d)=>s+(d.f1-mean)**2,0)/k.length);
+  const anom=k.filter(d=>Math.abs(d.f1-mean)>2*std);
+  mkChart('chart-mon-anom','scatter',{datasets:[
+    {label:'F1',data:k.map((d,i)=>({x:d.date,y:d.f1})),backgroundColor:'#42a5f5',pointRadius:2},
+    {label:'Moyenne',data:k.map(d=>({x:d.date,y:mean})),type:'line',borderColor:'#78909c',borderDash:[4,4],pointRadius:0},
+    {label:'+2σ',data:k.map(d=>({x:d.date,y:mean+2*std})),type:'line',borderColor:'#ef5350',borderDash:[2,2],pointRadius:0},
+    {label:'-2σ',data:k.map(d=>({x:d.date,y:mean-2*std})),type:'line',borderColor:'#ef5350',borderDash:[2,2],pointRadius:0},
+    {label:'Anomalies',data:anom.map(d=>({x:d.date,y:d.f1})),backgroundColor:'#ef5350',pointRadius:5,pointStyle:'crossRot'}]},
+    {scales:{y:{min:.7,max:1}}});
+
+  document.getElementById('mon-anom-list').innerHTML=anom.length?anom.map(d=>
+    `<div style="background:var(--card);border-left:3px solid #ef5350;border-radius:4px;padding:6px 10px;margin:3px 0;font-size:.8rem;"><b>${d.date.toLocaleDateString('fr-FR')}</b> F1=${d.f1.toFixed(3)} <span style="color:var(--muted);">(Z=${((d.f1-mean)/std).toFixed(1)})</span></div>`).join('')
+    :'<p style="color:var(--accent);font-size:.85rem;">✅ Aucune anomalie</p>';
+}
+
+// ════════════════════════════════════════════════════════════════
+//  CONFIG
+// ════════════════════════════════════════════════════════════════
+
+function saveConfig(){
+  const cfg={crit:+document.getElementById('cfg-crit').textContent,elev:+document.getElementById('cfg-elev').textContent,
+    moy:+document.getElementById('cfg-moy').textContent,f1min:+document.getElementById('cfg-f1min').textContent,
+    auto:document.getElementById('cfg-auto').checked,freq:+document.getElementById('cfg-freq').value,
+    samp:+document.getElementById('cfg-samp').value};
+  localStorage.setItem('fraudx_config',JSON.stringify(cfg));
+  document.getElementById('cfg-summary').innerHTML=`
+    <div class="kpi"><div class="label">Critique</div><div class="value">${cfg.crit.toFixed(2)}</div></div>
+    <div class="kpi"><div class="label">Élevé</div><div class="value">${cfg.elev.toFixed(2)}</div></div>
+    <div class="kpi"><div class="label">Moyen</div><div class="value">${cfg.moy.toFixed(2)}</div></div>
+    <div class="kpi"><div class="label">F1 min</div><div class="value">${cfg.f1min.toFixed(2)}</div></div>
+    <div class="kpi"><div class="label">Auto</div><div class="value">${cfg.auto?'Oui':'Non'}</div></div>
+    <div class="kpi"><div class="label">Fréquence</div><div class="value">${cfg.freq}h</div></div>`;
+  showToast('✅ Configuration sauvegardée');
+}
+
+function showToast(msg){
+  const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);
+  setTimeout(()=>t.remove(),3000);
+}
+
+// ════════════════════════════════════════════════════════════════
+//  FEEDBACK
+// ════════════════════════════════════════════════════════════════
+
+function refreshFeedback(){
+  const fb=JSON.parse(localStorage.getItem('fraudx_feedback')||'[]');
+  document.getElementById('fb-list').innerHTML=fb.length?fb.map(f=>
+    `<tr><td style="font-family:monospace;font-size:.8rem;">${f.tx_id||'—'}</td><td>${f.prediction||'—'} (${(f.score||0).toFixed(3)})</td>
+    <td>${f.is_fraud?'✅ Fraude confirmée':'❌ Faux positif'}</td><td>${f.date?new Date(f.date).toLocaleString('fr-FR'):'—'}</td><td>${f.analyst||'—'}</td></tr>`).join('')
+    :'<tr><td colspan="5" style="color:var(--muted);text-align:center;">Aucun feedback enregistré. Analysez des transactions et donnez votre retour.</td></tr>';
+}
+
+// ════════════════════════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════════════════════════
+
+if(currentUser)initApp();
+document.getElementById('login-pass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+document.getElementById('login-user').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+</script>
+</body>
+</html>

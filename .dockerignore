@@ -1,0 +1,41 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.so
+*.egg
+
+# Virtual environment
+venv/
+env/
+.venv/
+
+# Data (too large for Docker)
+data/*.csv
+data/*.pkl
+data/*.db
+data/*.sqlite
+
+# Models (trained separately)
+models/*.pkl
+models/*.npy
+models/*.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment
+.env
+
+# Notebooks
+.ipynb_checkpoints/

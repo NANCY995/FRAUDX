@@ -1,0 +1,54 @@
+{
+  "date": "2026-06-23T07:17:12.975413",
+  "n_transactions": 100000,
+  "n_features": 394,
+  "fraud_rate": 0.0256125,
+  "models_tested": [
+    "if",
+    "rf",
+    "xgb"
+  ],
+  "metrics": [
+    {
+      "model": "Isolation Forest",
+      "f1_score": 0.16071428571428573,
+      "recall": 0.158203125,
+      "precision": 0.16330645161290322,
+      "auc_pr": 0.08535031078679023,
+      "auc_roc": 0.7314951227999281,
+      "train_time_s": 1.87,
+      "tn": 19073,
+      "fp": 415,
+      "fn": 431,
+      "tp": 81
+    },
+    {
+      "model": "Random Forest",
+      "f1_score": 0.37037037037037035,
+      "recall": 0.56640625,
+      "precision": 0.27514231499051234,
+      "auc_pr": 0.4920286534052155,
+      "auc_roc": 0.8888200030146758,
+      "train_time_s": 58.47,
+      "tn": 18724,
+      "fp": 764,
+      "fn": 222,
+      "tp": 290
+    },
+    {
+      "model": "XGBoost",
+      "f1_score": 0.6073697585768743,
+      "recall": 0.466796875,
+      "precision": 0.8690909090909091,
+      "auc_pr": 0.6569519477692519,
+      "auc_roc": 0.9245741770576765,
+      "train_time_s": 66.98,
+      "tn": 19452,
+      "fp": 36,
+      "fn": 273,
+      "tp": 239
+    }
+  ],
+  "best_model": "XGBoost",
+  "best_f1": 0.6073697585768743
+}

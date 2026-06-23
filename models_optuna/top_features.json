@@ -1,0 +1,42 @@
+[
+  {
+    "feature": "C14",
+    "importance": 0.17401377856731415
+  },
+  {
+    "feature": "V258",
+    "importance": 0.16307945549488068
+  },
+  {
+    "feature": "V70",
+    "importance": 0.1511269509792328
+  },
+  {
+    "feature": "card6_credit",
+    "importance": 0.11647979170084
+  },
+  {
+    "feature": "C1",
+    "importance": 0.10828744620084763
+  },
+  {
+    "feature": "C11",
+    "importance": 0.09709101170301437
+  },
+  {
+    "feature": "V294",
+    "importance": 0.09659459441900253
+  },
+  {
+    "feature": "TransactionDT",
+    "importance": 0.09056858718395233
+  },
+  {
+    "feature": "V48",
+    "importance": 0.08295811712741852
+  },
+  {
+    "feature": "V91",
+    "importance": 0.07913454622030258
+  }
+]

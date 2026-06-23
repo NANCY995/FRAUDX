@@ -1,0 +1,63 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[project]
+name = "fraudx"
+version = "2.0.0"
+description = "Système d'IA pour la détection de la fraude bancaire et mobile money au Togo"
+readme = "README.md"
+authors = [{ name = "Johnson Nancy" }]
+license = { text = "MIT" }
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Intended Audience :: Financial and Insurance Industry",
+]
+dependencies = [
+    "pandas>=1.5.0",
+    "numpy>=1.23.0",
+    "scikit-learn>=1.1.0",
+    "xgboost>=1.7.0",
+    "imbalanced-learn>=0.10.0",
+    "shap>=0.41.0",
+    "fastapi>=0.95.0",
+    "uvicorn>=0.21.0",
+    "pydantic>=1.10.0",
+    "streamlit>=1.22.0",
+    "joblib>=1.2.0",
+    "optuna>=3.0.0",
+    "python-dotenv>=1.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/"
+Documentation = "https://github.com/"
+
+[project.scripts]
+fraudx = "fraudx.cli:main"
+fraudx-train = "train:main"
+fraudx-api = "src.api:main"
+fraudx-dashboard = "app_streamlit:main"
+fraudx-simulate = "simulate_stream:main"
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-v --tb=short -p no:warnings"
+
+[tool.coverage.run]
+source = ["fraudx", "src"]
+omit = ["*/tests/*", "*/notebooks/*"]
+
+[tool.black]
+line-length = 100
+target-version = ["py310"]
+
+[tool.isort]
+profile = "black"
+line_length = 100
