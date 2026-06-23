@@ -89,7 +89,7 @@ Données (IEEE-CIS 590k lignes)
 ## Déploiement
 
 L'application est disponible en ligne :
-- **Streamlit Cloud :** [fraudx-memoirel3.streamlit.app](https://fraudx-memoirel3.streamlit.app/)
+- **Streamlit Cloud :** [fraudx-memoirel3.streamlit.app](https://fraudx-memoirel3.streamlit.app/) *(après renommage)* ou [fraudx-botqgdgxjouack9u82hnej.streamlit.app](https://fraudx-botqgdgxjouack9u82hnej.streamlit.app/)
 - **Repository GitHub :** [github.com/NANCY995/FRAUDX](https://github.com/NANCY995/FRAUDX)
 
 ### Lancement local
