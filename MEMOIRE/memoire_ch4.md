@@ -142,6 +142,34 @@ Les régulateurs BCEAO/UEMOA exigent la transparence des décisions automatisée
 - Des explications locales (facteurs ayant déclenché chaque alerte spécifique)
 - Des visualisations accessibles aux non-spécialistes
 
+### 4.2.3. Résultats expérimentaux du prototype
+
+Un prototype fonctionnel du système FRAUDX a été implémenté et déployé sur Streamlit Cloud pour validation technique. Ce prototype reprend l'architecture à deux niveaux (Isolation Forest + XGBoost) et a été entraîné sur le dataset IEEE-CIS Fraud Detection (~590 000 transactions, 3,5 % de fraude).
+
+**Métriques finales :**
+
+| Métrique | Valeur | Modèle |
+|----------|--------|--------|
+| Recall | **85,02 %** | XGBoost (Optuna, 30 essais) |
+| Precision | 13,54 % | XGBoost (seuil optimisé ~0,325) |
+| AUC-PR | 0,5735 | XGBoost |
+| F1-Score | **0,607** | XGBoost |
+| F1-Score RF | 0,370 | Random Forest |
+| F1-Score IF | 0,161 | Isolation Forest |
+| Temps d'entraînement | ~13 min | 30 essais Optuna |
+
+L'optimisation par Optuna a porté le F1 de 0,53 (configuration de base) à **0,607**, soit une amélioration de +14,5 %. L'hypothèse H1 (Recall ≥ 85 %) est vérifiée avec un seuil à 0,325.
+
+Le prototype intègre :
+- **6 pages interactives** : Dataset, Prétraitement, Entraînement, Résultats, Benchmark, Prédiction
+- **API REST** FastAPI avec 5 endpoints (health, predict, batch, logs, feedback)
+- **Benchmark comparatif** XGBoost > Random Forest > Isolation Forest
+- **Analyse SHAP** des 15 features les plus importantes
+- **Adaptation Mobile Money** Togo (TogoCom Cash, Moov Money, Flooz)
+- **Auto-téléchargement** des datasets (Kaggle, TensorFlow) et modèle pré-entraîné chargé au démarrage
+
+L'application est accessible en ligne : [fraudx-memoirel3.streamlit.app](https://fraudx-memoirel3.streamlit.app/) (Streamlit Cloud, déploiement gratuit).
+
 ---
 
 ## 4.3. Objectifs de l'intervention
