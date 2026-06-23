@@ -29,12 +29,22 @@ st.set_page_config(page_title="FRAUDX", page_icon="🛡️", layout="wide", init
 
 # ─── CSS ───
 st.markdown("""<style>
-    [data-testid="metric-container"] { background: #111d2e; border:1px solid #1a3a5c; border-radius:12px; padding:12px 16px; }
-    [data-testid="stSidebar"] { background: #0a1628; border-right:1px solid #1a3a5c; }
-    .step-active { border-left:4px solid #42a5f5; background:#111d2e; padding:10px; border-radius:4px; margin:4px 0; }
-    .step-done { border-left:4px solid #4caf50; background:#111d2e; padding:10px; border-radius:4px; margin:4px 0; }
-    .step-pending { border-left:4px solid #455a64; background:#111d2e; padding:10px; border-radius:4px; margin:4px 0; }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+    * { font-family: 'Inter', sans-serif; }
+    [data-testid="metric-container"] { background: linear-gradient(135deg, #111d2e, #1a2a4a); border:1px solid #1a3a5c; border-radius:12px; padding:12px 16px; }
+    [data-testid="stSidebar"] { background: linear-gradient(180deg, #0a1628, #0f1f3a); border-right:1px solid #1a3a5c; }
+    .step-active { border-left:4px solid #42a5f5; background: linear-gradient(90deg, #111d2e, #1a2a4a); padding:10px; border-radius:4px; margin:4px 0; }
+    .step-done { border-left:4px solid #4caf50; background: linear-gradient(90deg, #111d2e, #1a2a4a); padding:10px; border-radius:4px; margin:4px 0; }
+    .step-pending { border-left:4px solid #455a64; background: linear-gradient(90deg, #111d2e, #1a2a4a); padding:10px; border-radius:4px; margin:4px 0; }
     .stApp { background: #0a1628; }
+    .hero-title { font-size: 2.5rem; font-weight: 700; background: linear-gradient(135deg, #42a5f5, #7c4dff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.5rem; }
+    .hero-sub { font-size: 1.1rem; color: #90a4ae; margin-bottom: 2rem; }
+    .card { background: linear-gradient(135deg, #111d2e, #1a2a4a); border: 1px solid #1a3a5c; border-radius: 12px; padding: 20px; margin: 8px 0; }
+    .card-title { font-size: 1.1rem; font-weight: 600; color: #42a5f5; margin-bottom: 8px; }
+    .card-text { color: #b0bec5; font-size: 0.9rem; }
+    .badge { display: inline-block; background: #1a3a5c; color: #90caf9; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
+    .stButton > button { border-radius: 8px !important; font-weight: 600 !important; }
+    div[data-testid="stExpander"] { background: linear-gradient(135deg, #111d2e, #1a2a4a) !important; border: 1px solid #1a3a5c !important; border-radius: 12px !important; }
 </style>""", unsafe_allow_html=True)
 
 # ─── Session State ───
@@ -99,16 +109,35 @@ st.sidebar.markdown("---")
 if st.session_state.df is not None:
     st.sidebar.metric("Dataset", st.session_state.df_name, f"{len(st.session_state.df):,} lignes")
 if st.session_state.model is not None:
-    st.sidebar.metric("Modèle", "XGBoost entraîné ✅")
+    model_status = "✅ Pré-entraîné" if st.session_state.model_loaded else "✅ Entraîné"
+    st.sidebar.metric("Modèle", "XGBoost", model_status)
     if st.session_state.metrics:
-        st.sidebar.metric("Recall", f"{st.session_state.metrics['recall']:.2%}")
+        rec = st.session_state.metrics.get('recall', 0)
+        st.sidebar.metric("Recall", f"{rec:.1%}" if rec else "N/A")
+else:
+    st.sidebar.warning("⚠️ Aucun modèle chargé")
+    if not st.session_state.model_loaded:
+        st.sidebar.caption("Entraînez via l'onglet Entraînement")
 st.sidebar.caption(f"Mise à jour : {datetime.now().strftime('%H:%M')}")
 
 # =====================================================================
 # PAGE 1 : ACCUEIL / DATASET
 # =====================================================================
 if page == "Dataset":
-    st.title("📥 Chargement du dataset")
+    st.markdown('<div class="hero-title">🛡️ FRAUDX</div>', unsafe_allow_html=True)
+    st.markdown('<div class="hero-sub">Système Intelligent de Détection de Fraude Bancaire & Mobile Money</div>', unsafe_allow_html=True)
+
+    col_intro1, col_intro2, col_intro3 = st.columns(3)
+    with col_intro1:
+        st.markdown("""<div class="card"><div class="card-title">🤖 Machine Learning</div><div class="card-text">XGBoost optimisé par Optuna avec recall ≥ 85% pour maximiser la détection des fraudes.</div></div>""", unsafe_allow_html=True)
+    with col_intro2:
+        st.markdown("""<div class="card"><div class="card-title">📊 Analyse SHAP</div><div class="card-text">Interprétabilité des prédictions avec explications visuelles des features importantes.</div></div>""", unsafe_allow_html=True)
+    with col_intro3:
+        st.markdown("""<div class="card"><div class="card-title">🌍 Contexte Togo</div><div class="card-text">Adapté au Mobile Money avec détection des fraudes sur TogoCom, Moov, Flooz.</div></div>""", unsafe_allow_html=True)
+
+    st.markdown("---")
+
+    st.subheader("📥 Chargement du dataset")
     st.caption("Importez vos transactions bancaires ou utilisez un dataset de référence")
 
     col1, col2 = st.columns(2)
