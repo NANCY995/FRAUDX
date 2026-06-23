@@ -571,11 +571,16 @@ elif page == "Résultats":
 
     # Export
     st.subheader("📤 Export")
-    col_e1, col_e2, col_e3 = st.columns(3)
+    col_e1, col_e2, col_e3, col_e4 = st.columns(4)
     with col_e1:
         report_json = json.dumps(metrics, indent=2)
         st.download_button("📥 Métriques (JSON)", data=report_json, file_name="fraudx_metrics.json", use_container_width=True)
     with col_e2:
+        model_buf = io.BytesIO()
+        joblib.dump(model, model_buf)
+        model_buf.seek(0)
+        st.download_button("📥 Modèle (joblib)", data=model_buf, file_name="fraudx_model.pkl", use_container_width=True)
+    with col_e3:
         # Generate report HTML
         recall_status = "validée" if metrics['recall'] >= 0.85 else "non validée"
         report_html = f"""<html><body style="font-family:Arial;background:#0a1628;color:#e8eaf6;padding:40px">
