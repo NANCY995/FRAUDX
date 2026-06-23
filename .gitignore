@@ -44,8 +44,9 @@ Thumbs.db
 logs/
 full_optuna_*.txt
 
-# Embedded submodule
+# Embedded submodule & IDE agents
 agency-agents/
+.opencode/
 
 # Temporary files
 *.tmp
