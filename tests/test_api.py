@@ -29,7 +29,7 @@ def test_root_endpoint():
     assert response.status_code == 200
     data = response.json()
     assert "service" in data
-    assert data["status"] == "opérationnel"
+    assert data["status"] == "operationnel"
 
 
 def test_health_endpoint():
@@ -107,6 +107,6 @@ def test_cors_headers():
 def test_risk_level_logic():
     from src.api import get_risk_level
     assert get_risk_level(0.95) == "Critique"
-    assert get_risk_level(0.8) == "Élevé"
+    assert get_risk_level(0.8) == "Eleve"
     assert get_risk_level(0.5) == "Moyen"
     assert get_risk_level(0.2) == "Faible"

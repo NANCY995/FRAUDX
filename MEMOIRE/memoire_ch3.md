@@ -80,7 +80,7 @@ Au-delà de l'impact financier direct, la fraude a un effet dissuasif sur l'adop
 
 ### 3.3.1. Description du dataset retenu
 
-Le dataset principal retenu est **IEEE-CIS Fraud Detection** (Kaggle, 2020). Il s'agit d'un jeu de données de transactions par carte bancaire, comprenant environ 590 000 transactions étiquetées (fraude / non-fraude).
+Le dataset principal retenu est **IEEE-CIS Fraud Detection** (Kaggle, 2020). Ce jeu de données est devenu une référence dans la littérature récente sur la détection de fraude. Moradi et al. (2025, Preprints) l'utilisent pour évaluer une approche de stacking combinant Random Forest, XGBoost et LightGBM, atteignant une AUC-ROC de 0,918 et une AUC-PR de 0,891. Qian et al. (2025, arXiv 2512.21866) proposent quant à eux un framework de distillation de dataset multi-source hiérarchique sur ce même jeu de données, réduisant le volume de 85 à 93 % tout en maintenant des performances compétitives. Il s'agit d'un jeu de données de transactions par carte bancaire, comprenant environ 590 000 transactions étiquetées (fraude / non-fraude).
 
 **Caractéristiques principales :**
 - **Volume** : 590 540 transactions
@@ -110,6 +110,9 @@ La répartition des classes confirme le déséquilibre caractéristique des prob
 - Transactions non frauduleuses : 569 871 (96,5 %)
 - Transactions frauduleuses : 20 669 (3,5 %)
 - Ratio : environ 27:1
+
+![Figure 3.1 — Distribution des classes (IEEE-CIS)](../reports/figures_memoire_20260701_023336/fig_3_1_distribution_classes.png)
+*Figure 3.1 — Distribution des classes (IEEE-CIS)*
 
 **Analyse univariée :**
 
@@ -195,7 +198,7 @@ Les trois modèles retenus (Isolation Forest, Random Forest, XGBoost) ont été 
 | Random Forest | 0,4373 | 0,6196 | 0,5336 | 0,3379 | 254,1 s | 0,081 |
 | **XGBoost** | **0,5312** | **0,5163** | **0,5615** | **0,5469** | **325,6 s** | **0,016** |
 
-> **Note importante** : Ces résultats correspondent à une **configuration de base** sans optimisation d'hyperparamètres (paramètres par défaut des bibliothèques). Les performances des modèles de détection de fraude sur ce jeu de données sont significativement améliorées par l'optimisation — les meilleures soumissions Kaggle sur IEEE-CIS atteignent des F1-Scores de l'ordre de 0,75 à 0,85 grâce à un feature engineering spécialisé et une recherche d'hyperparamètres approfondie (cf. Kaggle Leaderboard, 2020). La section 3.6.1 présente les résultats obtenus après optimisation par Optuna.
+> **Note importante** : Ces résultats correspondent à une **configuration de base** sans optimisation d'hyperparamètres (paramètres par défaut des bibliothèques). Les performances des modèles de détection de fraude sur ce jeu de données sont significativement améliorées par l'optimisation — les meilleures soumissions Kaggle sur IEEE-CIS atteignent des F1-Scores de l'ordre de 0,75 à 0,85 grâce à un feature engineering spécialisé et une recherche d'hyperparamètres approfondie (cf. Kaggle Leaderboard, 2020). À titre de comparaison, Moradi et al. (2025) obtiennent des scores de 0,918 AUC-ROC et 0,891 AUC-PR avec une approche de stacking complète sur le même dataset, ce qui dépasse nos résultats de base. Cet écart s'explique par l'utilisation d'un feature engineering plus poussé, de techniques de rééquilibrage avancées (ADASYN, Borderline-SMOTE), et de ressources de calcul supérieures. La section 3.6.1 présente les résultats obtenus après optimisation par Optuna.
 
 **Analyse des résultats :**
 
@@ -251,6 +254,9 @@ Les 10 variables les plus importantes selon SHAP sont :
 9. **`M6_T`** (indicateur de correspondance anonymisé) — 0,1130
 10. **`C11`** (variable calculée par l'émetteur) — 0,1026
 
+![Figure 3.2 — Importance globale des variables (SHAP)](../reports/figures_memoire_20260701_023336/fig_3_2_shap_importance.png)
+*Figure 3.2 — Importance globale des variables (SHAP)*
+
 **Interprétation :**
 
 La variable `C14` (calculée par l'émetteur de la carte) est la plus discriminante, ce qui suggère que l'émetteur intègre dans ses calculs des informations de risque difficilement accessibles autrement.
@@ -261,11 +267,14 @@ La variable `card6_credit` (carte de crédit vs autre type) indique que le type 
 
 Les variables anonymisées par PCA (`V317`, `V258`, `V312`) et le timestamp (`TransactionDT`) complètent le top 10, confirmant l'importance conjointe des facteurs comportementaux, techniques et temporels dans la détection.
 
+![Figure 3.5 — Waterfall plot SHAP (exemple individuel)](../reports/figures_memoire_20260701_023336/fig_3_5_waterfall_shap.png)
+*Figure 3.5 — Waterfall plot SHAP (exemple individuel)*
+
 ---
 
 ## 3.5. Proposition de plateforme : FRAUDX (Preuve de Concept)
 
-Cette section présente la preuve de concept (PoC) du système FRAUDX, une plateforme intégrée de détection de fraude bancaire dotée d'un tableau de bord interactif, d'un contrôle d'accès basé sur les rôles (RBAC) et d'un module d'explicabilité SHAP.
+Cette section présente la preuve de concept (PoC) du système FRAUDX, une plateforme intégrée de détection de fraude bancaire dotée d'un tableau de bord interactif, d'un contrôle d'accès basé sur les rôles (RBAC) et d'un module d'explicabilité SHAP. Cette approche s'inscrit dans la lignée de systèmes récents comme FraudGuess (Qian et al., 2025, arXiv 2509.15493), qui combine détection de fraude et tableau de bord d'explicabilité pour fournir aux analystes des justifications visuelles et textuelles des alertes générées.
 
 ### 3.5.1. Architecture technique cible
 
@@ -291,6 +300,9 @@ L'architecture de FRAUDX est structurée en six couches, conformément aux princ
 6. L'alerte est transmise au dashboard avec les explications SHAP
 7. L'analyste valide ou infirme l'alerte (feedback)
 8. Le feedback est stocké dans la base de données pour le réentraînement futur
+
+![Figure 3.3 — Architecture technique en 6 couches (FRAUDX)](../reports/figures_memoire_20260701_023336/fig_3_3_architecture.png)
+*Figure 3.3 — Architecture technique en 6 couches (FRAUDX)*
 
 ### 3.5.2. Contrôle d'accès basé sur les rôles (RBAC)
 
@@ -344,6 +356,9 @@ Le dashboard FRAUDX (implémenté en HTML/JavaScript avec Chart.js) offre les fo
 - Formulaire de validation/infirmation des alertes
 - Commentaires libres sur chaque transaction
 - Bilan des feedbacks (taux de confirmation, précision des alertes)
+
+![Figure 3.4 — Dashboard FRAUDX (maquette)](../reports/figures_memoire_20260701_023336/fig_3_4_dashboard.png)
+*Figure 3.4 — Dashboard FRAUDX (maquette)*
 
 ### 3.5.4. Sécurité et conformité
 

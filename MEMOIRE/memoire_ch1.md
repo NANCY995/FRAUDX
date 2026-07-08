@@ -171,6 +171,8 @@ Ce tableau montre qu'aucune étude n'a à ce jour porté spécifiquement sur la 
 
 Selon les données disponibles auprès de la BCEAO et du GIABA, les pertes liées à la fraude bancaire et mobile money dans l'espace UEMOA ont augmenté de 45% entre 2020 et 2023. Au Togo, les estimations (basées sur les déclarations des institutions financières) font état de pertes annuelles de l'ordre de 3 à 5 milliards de FCFA, un chiffre probablement sous-évalué en raison de la sous-déclaration et de la difficulté à détecter certaines formes de fraude sophistiquée.
 
+À l'échelle mondiale, une étude portant sur 500 institutions financières (Barry, 2026) révèle que les systèmes d'IA atteignent un taux de détection de 95 % contre seulement 60 % pour les méthodes traditionnelles basées sur des règles fixes, avec une réduction de 70 % des faux positifs. Les coûts de déploiement de ces solutions ont chuté de 80 % en trois ans, rendant la technologie accessible aux institutions de taille moyenne. Selon McKinsey (cité par StartBrain, 2026), l'IA génère entre 200 et 340 milliards de dollars de valeur annuelle potentielle dans la banque mondiale. Cette transformation, souvent désignée sous le terme de Banque 4.0 (JUWA, 2025), s'accompagne de bonnes pratiques spécifiques pour l'intégration de l'IA dans les institutions financières (Infotel, 2026). Ces chiffres confirment la pertinence de l'adoption de l'IA pour la détection de fraude dans le secteur bancaire togolais.
+
 ### 1.2. Machine Learning pour la détection de fraude
 
 #### 1.2.1. Concepts fondamentaux
@@ -185,7 +187,7 @@ Le choix du paradigme dépend de la disponibilité des données labellisées et 
 
 #### 1.2.2. Détection d'anomalies par Isolation Forest
 
-L'Isolation Forest (Liu et al., 2008, 2012) est un algorithme non supervisé spécifiquement conçu pour la détection d'anomalies. Contrairement aux méthodes traditionnelles qui construisent un profil de la normalité puis identifient les déviations, l'Isolation Forest isole directement les anomalies en exploitant leur rareté et leur différence.
+L'Isolation Forest (Liu et al., 2008, 2012) est un algorithme non supervisé spécifiquement conçu pour la détection d'anomalies. Plusieurs revues systématiques récentes confirment la pertinence de ces approches pour la détection de fraude financière (Chen et al., 2025). Contrairement aux méthodes traditionnelles qui construisent un profil de la normalité puis identifient les déviations, l'Isolation Forest isole directement les anomalies en exploitant leur rareté et leur différence.
 
 **Principe de fonctionnement :**
 
@@ -254,6 +256,10 @@ Où le premier terme mesure l'erreur de prédiction et le second régularise la 
 
 XGBoost a remporté de nombreuses compétitions Kaggle et est devenu l'algorithme de référence pour les problèmes de classification sur données tabulaires, incluant la détection de fraude. Sa combinaison de performance prédictive, de robustesse et de rapidité en fait un choix naturel pour notre étude.
 
+Des travaux récents confirment l'efficacité de XGBoost en contexte bancaire réel. Facci et al. (2024, hal-04939824), de BNP Paribas Personal Finance, proposent une approche couplant un réseau de neurones de graphe (GraphSAGE) à XGBoost ou Random Forest pour détecter la fraude sur les paiements fractionnés e-commerce. Leurs résultats sur données réelles anonymisées montrent que le couplage GNN + ensemble learning surpasse XGBoost seul, ouvrant la voie à des architectures hybrides. Dans une autre étude comparative portant sur 17 modèles de ML/DL appliqués à la détection de blanchiment d'argent, Chergui et al. (2022) et les travaux ultérieurs (APIA, 2024) confirment que les arbres de décision boostés (XGBoost, LightGBM, CatBoost) atteignent jusqu'à 90 % de fiabilité et d'efficacité opérationnelle, se distinguant parmi l'ensemble des modèles testés. En parallèle, Dedam (2025), dans son mémoire à l'Université du Québec à Trois-Rivières, compare XGBoost à TabNet et aux auto-encodeurs pour la détection de fraude financière, confirmant la pertinence du gradient boosting face aux approches par deep learning.
+
+Dans un mémoire récent portant sur le même domaine, Da (2024) propose une approche de détection efficace et robuste des fraudes bancaires par apprentissage automatique, en traitant spécifiquement le défi du déséquilibre des données et du rééquilibrage par méthodes contradictoires. Ce travail confirme la pertinence des axes de recherche explorés dans la présente étude et souligne l'importance de la robustesse des modèles face aux évolutions des schémas de fraude.
+
 **Tableau 1.2 — Comparaison des algorithmes de Machine Learning retenus**
 
 | Caractéristique | Isolation Forest | Random Forest | XGBoost |
@@ -280,11 +286,13 @@ SMOTE (Synthetic Minority Oversampling Technique), proposé par Chawla et al. (2
 
 Cette approche présente l'avantage de générer des exemples réalistes qui enrichissent l'espace des caractéristiques de la classe minoritaire, sans tomber dans la duplication pure qui favoriserait le sur-apprentissage.
 
+D'autres techniques de rééquilibrage existent, notamment le Cost-Sensitive Learning, qui assigne des poids de coût plus élevés aux erreurs de classification sur la classe minoritaire plutôt que de modifier la distribution des données. Dedam (2025) compare ces approches et montre que le Cost-Sensitive Learning peut constituer une alternative efficace à SMOTE dans certains contextes, bien que SMOTE reste privilégié pour sa simplicité d'implémentation et sa compatibilité avec les modèles arborescents comme XGBoost.
+
 ### 1.3. Explicabilité (XAI) dans les systèmes bancaires
 
 #### 1.3.1. Le besoin d'explicabilité en finance
 
-L'explicabilité des modèles d'IA (XAI — eXplainable Artificial Intelligence) est devenue un enjeu central du déploiement des systèmes intelligents dans le secteur bancaire. Plusieurs facteurs expliquent cette importance croissante :
+L'explicabilité des modèles d'IA (XAI — eXplainable Artificial Intelligence) est devenue un enjeu central du déploiement des systèmes intelligents dans le secteur bancaire. Selon StartBrain (2026), les banques opèrent dans un cadre réglementaire dense — RGPD, AI Act, directives LCB-FT — où chaque modèle de scoring, chaque algorithme de détection doit être explicable, auditable et conforme. L'AI Act européen classe d'ailleurs le scoring de crédit et la détection de fraude parmi les systèmes à haut risque, imposant documentation, audit de biais et contrôle humain obligatoire. Plusieurs facteurs expliquent cette importance croissante :
 
 - **Exigences réglementaires** : les régulateurs (BCEAO, UEMOA, mais aussi GDPR en Europe) exigent que les décisions automatisées affectant les clients puissent être expliquées et justifiées.
 - **Confiance des analystes** : les gestionnaires de risques et analystes fraude doivent pouvoir comprendre pourquoi une transaction a été marquée comme suspecte pour valider ou infirmer l'alerte.
@@ -318,6 +326,8 @@ L'application de SHAP à la détection de fraude présente trois avantages majeu
 3. **Conformité réglementaire** : les explications SHAP fournissent une traçabilité transparente des décisions, répondant aux exigences des régulateurs.
 
 Dans le cadre de ce mémoire, SHAP est utilisé pour répondre à HS3, en démontrant que l'explicabilité des décisions du modèle facilite l'adoption du système par les analystes financiers togolais.
+
+Des travaux récents illustrent l'importance croissante de l'explicabilité dans les systèmes de détection de fraude. Le système FraudGuess (Qian et al., 2025, arXiv 2509.15493), déployé dans une institution financière anonyme, combine détection de nouveaux types de fraude via du micro-clustering avec un tableau de bord interactif fournissant des explications visuelles et des heatmaps aux analystes. Ce système a permis de découvrir trois nouveaux comportements frauduleux inconnus jusqu'alors, démontrant que l'explicabilité ne sert pas seulement la conformité mais aussi la découverte de nouveaux schémas de fraude. De même, le framework SAGE (Chen et al., 2026, arXiv 2606.08146) propose une approche multi-agents pilotée par LLM pour la détection de fraude, avec un accent sur l'interprétabilité des décisions individuelles — améliorant le F1 de 40,86 % par rapport aux bases de référence.
 
 ### 1.4. Cadre légal et réglementaire
 

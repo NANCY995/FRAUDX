@@ -171,7 +171,7 @@ def test_e2e_health_and_root():
     """Test les endpoints de santé."""
     root = client.get("/")
     assert root.status_code == 200
-    assert root.json()["status"] == "opérationnel"
+    assert root.json()["status"] == "operationnel"
 
     health = client.get("/health")
     assert health.status_code == 200

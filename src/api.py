@@ -8,113 +8,118 @@ import datetime
 import logging
 import time
 from pathlib import Path
+from typing import List, Optional
 
 from fastapi import FastAPI, HTTPException, Depends, WebSocket, WebSocketDisconnect, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from pydantic import BaseModel, Field
-from typing import List, Optional
 import uvicorn
 import asyncio
 
 from fraudx.preprocessing import FraudPreprocessor, FeatureEngineer
 from fraudx.config import config as fraudx_config
+from fraudx.security import (
+    sanitize_html, validate_transaction_amount,
+    hash_tx_value, RateLimiter, validate_string_length
+)
 
-# === Logging ===
 logging.basicConfig(
-    level=logging.INFO,
+    level=getattr(logging, os.getenv("LOG_LEVEL", "INFO")),
     format="%(asctime)s | %(levelname)s | %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S"
 )
 logger = logging.getLogger("fraudx")
 
-# === Initialisation ===
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
+rate_limiter = RateLimiter(max_requests=int(os.getenv("API_RATE_LIMIT", "100")), window_seconds=60)
+
 preprocessor = FraudPreprocessor(models_path=fraudx_config.MODELS_PATH)
 preprocessor.load_artifacts()
 
 model_path = Path(fraudx_config.MODELS_PATH) / fraudx_config.MODEL_NAME
 model = joblib.load(model_path)
-logger.info(f"Modèle chargé : {model_path}")
+logger.info(f"Modele charge : {model_path}")
 explainer = shap.TreeExplainer(model)
 
-# === Application ===
+API_KEY = os.getenv("FRAUDX_API_KEY", "")
+ALLOWED_ORIGINS = os.getenv(
+    "ALLOWED_ORIGINS",
+    "https://fraudx-memoirel3.streamlit.app,http://localhost:8501,http://localhost:8000"
+).split(",")
+
 app = FastAPI(
-    title="FRAUDX - Détection de fraude bancaire",
-    description="API temps réel avec explicabilité SHAP — Contexte Togo (mobile money + transactions bancaires)",
-    version="2.0.0",
+    title="FRAUDX - Detection de fraude bancaire",
+    description="API temps reel avec explicabilite SHAP",
+    version="2.1.0",
     contact={"name": "Johnson Nancy", "organization": "Elna Comply"}
 )
 
-# === Middleware ===
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[o.strip() for o in ALLOWED_ORIGINS if o.strip()],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST"],
+    allow_headers=["Authorization", "Content-Type"],
 )
 
+
+def verify_auth(credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)) -> str:
+    if not API_KEY:
+        return "anonymous"
+    if not credentials:
+        raise HTTPException(status_code=401, detail="Authentification requise")
+    if credentials.credentials != API_KEY:
+        raise HTTPException(status_code=403, detail="Cle API invalide")
+    return "authenticated"
+
+
 @app.middleware("http")
-async def log_requests(request: Request, call_next):
+async def security_middleware(request: Request, call_next):
+    client_ip = request.client.host if request.client else "unknown"
+    allowed, retry_after = rate_limiter.is_allowed(client_ip)
+    if not allowed:
+        return Response(status_code=429, headers={"Retry-After": str(retry_after)})
     start = time.time()
     response = await call_next(request)
     duration = (time.time() - start) * 1000
-    logger.info(f"{request.method} {request.url.path} | {response.status_code} | {duration:.0f}ms")
+    if response.status_code < 500:
+        logger.info(f"{request.method} {request.url.path} | {response.status_code} | {duration:.0f}ms")
     return response
 
 
-# === Schémas ===
 class Transaction(BaseModel):
-    TransactionAmt: float = Field(..., description="Montant de la transaction")
-    TransactionDT: Optional[float] = Field(None, description="Timestamp (secondes depuis 2017-12-01)")
-    card1: Optional[float] = Field(None, description="Identifiant carte/device")
+    TransactionAmt: float = Field(..., gt=0, le=1_000_000_000)
+    TransactionDT: Optional[float] = Field(None, ge=0)
+    card1: Optional[float] = None
     card2: Optional[float] = None
     card3: Optional[float] = None
-    card4: Optional[str] = Field(None, description="Type de carte ou opérateur mobile money")
+    card4: Optional[str] = None
     card5: Optional[float] = None
     card6: Optional[str] = None
-    addr1: Optional[float] = Field(None, description="Ville/localisation (Togo)")
+    addr1: Optional[float] = None
     addr2: Optional[float] = None
     dist1: Optional[float] = None
     dist2: Optional[float] = None
-    ProductCD: Optional[str] = Field(None, description="Type de produit/canal (W, H, C, USSD, APP, AGENT)")
+    ProductCD: Optional[str] = None
     P_emaildomain: Optional[str] = None
     R_emaildomain: Optional[str] = None
     hour: Optional[int] = Field(None, ge=0, le=23)
     dayofweek: Optional[int] = Field(None, ge=0, le=6)
-    # Champs mobile money Togo
-    canal: Optional[str] = Field(None, description="Canal mobile money (USSD, APP, AGENT, WEB)")
-    operateur: Optional[str] = Field(None, description="Opérateur (TogoCom Cash, Moov Money, Flooz)")
-    ville: Optional[str] = Field(None, description="Ville de la transaction au Togo")
-    type_operation: Optional[str] = Field(None, description="Type (RECHARGE, TRANSFERT, PAIEMENT, RETRAIT)")
-    device_change_days: Optional[float] = Field(None, description="Jours depuis dernier changement de SIM/appareil")
-    tx_last_30min: Optional[float] = Field(None, description="Nombre de transactions dans les 30 dernières minutes")
+    canal: Optional[str] = None
+    operateur: Optional[str] = None
+    ville: Optional[str] = None
+    type_operation: Optional[str] = None
+    device_change_days: Optional[float] = None
+    tx_last_30min: Optional[float] = None
 
 
 class BatchRequest(BaseModel):
     transactions: List[Transaction]
 
 
-class FeatureImpact(BaseModel):
-    feature: str
-    value: float
-    shap_value: float
-    impact: str
-
-
-class PredictionResponse(BaseModel):
-    transaction_id: str
-    timestamp: str
-    fraud_score: float
-    prediction: str
-    risk_level: str
-    top_features: List[FeatureImpact]
-
-
 class BatchResponse(BaseModel):
-    predictions: List[PredictionResponse]
+    predictions: List[dict]
     total: int
     fraud_count: int
 
@@ -126,49 +131,40 @@ class HealthResponse(BaseModel):
     version: str
 
 
-# === Logs en mémoire (sera remplacé par SQLite) ===
 prediction_log: List[dict] = []
 
 
-# === Fonctions internes ===
 def get_risk_level(score: float) -> str:
     if score >= 0.9: return "Critique"
-    elif score >= 0.7: return "Élevé"
+    elif score >= 0.7: return "Eleve"
     elif score >= 0.4: return "Moyen"
     return "Faible"
 
 
 def process_transaction(tx: dict) -> dict:
-    # Feature engineering
     df = FeatureEngineer.add_temporal_features(pd.DataFrame([tx]))
     df = FeatureEngineer.add_amount_features(df)
     df = FeatureEngineer.add_behavioral_features(df)
     df = FeatureEngineer.add_velocity_features(df)
     df = FeatureEngineer.add_email_features(df)
 
-    # Convertir les types numériques pour éviter les erreres numpy
     for col in df.select_dtypes(include=["object"]).columns:
         try:
             df[col] = pd.to_numeric(df[col], errors="ignore")
         except Exception:
             pass
 
-    # Prétraitement
     X = preprocessor.transform(df)
-
-    # Aligner les colonnes avec celles attendues par le modèle
     expected = model.get_booster().feature_names
     for col in expected:
         if col not in X.columns:
             X[col] = 0.0
     X = X[expected]
 
-    # Prédiction
     proba = float(model.predict_proba(X)[0, 1])
     threshold = preprocessor.best_threshold
     prediction = "FRAUDE" if proba >= threshold else "NORMALE"
 
-    # SHAP
     shap_values = explainer.shap_values(X)
     importance = np.abs(shap_values[0])
     top_idx = np.argsort(importance)[-3:][::-1]
@@ -176,12 +172,12 @@ def process_transaction(tx: dict) -> dict:
     top_features = []
     for i in top_idx:
         col = X.columns[i]
-        top_features.append(FeatureImpact(
-            feature=col,
-            value=float(X.iloc[0, i]) if not isinstance(X.iloc[0, i], (str, bytes)) else str(X.iloc[0, i]),
-            shap_value=float(shap_values[0, i]),
-            impact="positif (fraude)" if shap_values[0, i] > 0 else "négatif (normale)"
-        ))
+        top_features.append({
+            "feature": col,
+            "value": float(X.iloc[0, i]) if not isinstance(X.iloc[0, i], (str, bytes)) else str(X.iloc[0, i]),
+            "shap_value": float(shap_values[0, i]),
+            "impact": "positif (fraude)" if shap_values[0, i] > 0 else "negatif (normale)"
+        })
 
     tx_id = f"TX_{uuid.uuid4().hex[:8].upper()}"
     ts = datetime.datetime.now().isoformat()
@@ -196,39 +192,28 @@ def process_transaction(tx: dict) -> dict:
     }
 
 
-# === Endpoints ===
 @app.get("/", tags=["Status"])
 def root():
-    return {
-        "service": "FRAUDX",
-        "version": "2.0.0",
-        "docs": "/docs",
-        "status": "opérationnel"
-    }
+    return {"service": "FRAUDX", "version": "2.1.0", "docs": "/docs", "status": "operationnel"}
 
 
 @app.get("/health", response_model=HealthResponse, tags=["Status"])
 def health():
-    return HealthResponse(
-        status="healthy",
-        model_loaded=True,
-        model_type=type(model).__name__,
-        version="2.0.0"
-    )
+    return HealthResponse(status="healthy", model_loaded=True, model_type=type(model).__name__, version="2.1.0")
 
 
-@app.post("/predict", response_model=PredictionResponse, tags=["Prédiction"])
-def predict(transaction: Transaction):
+@app.post("/predict", tags=["Prediction"])
+def predict(transaction: Transaction, auth: str = Depends(verify_auth)):
     try:
         result = process_transaction(transaction.dict())
         prediction_log.append(result)
         return result
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Erreur de prédiction : {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Erreur de prediction : {str(e)}")
 
 
-@app.post("/batch", response_model=BatchResponse, tags=["Prédiction"])
-def batch_predict(batch: BatchRequest):
+@app.post("/batch", response_model=BatchResponse, tags=["Prediction"])
+def batch_predict(batch: BatchRequest, auth: str = Depends(verify_auth)):
     results = []
     for tx in batch.transactions:
         try:
@@ -246,39 +231,44 @@ def batch_predict(batch: BatchRequest):
                 "error": str(e)
             })
     fraud_count = sum(1 for r in results if r["prediction"] == "FRAUDE")
-    return BatchResponse(
-        predictions=results,
-        total=len(results),
-        fraud_count=fraud_count
-    )
+    return BatchResponse(predictions=results, total=len(results), fraud_count=fraud_count)
 
 
 @app.get("/logs", tags=["Monitoring"])
-def get_logs(limit: int = 50):
-    return {"total": len(prediction_log), "recent": prediction_log[-limit:]}
+def get_logs(limit: int = 50, auth: str = Depends(verify_auth)):
+    safe_limit = min(max(limit, 1), 1000)
+    return {"total": len(prediction_log), "recent": prediction_log[-safe_limit:]}
 
 
 @app.post("/feedback", tags=["Monitoring"])
-def submit_feedback(transaction_id: str, is_fraud: bool, analyst: str = "anonymous"):
+def submit_feedback(transaction_id: str, is_fraud: bool, analyst: str = "anonymous",
+                    auth: str = Depends(verify_auth)):
+    safe_analyst = validate_string_length(analyst, 100)
     for entry in reversed(prediction_log):
         if entry.get("transaction_id") == transaction_id:
             entry["feedback"] = {
                 "is_fraud": is_fraud,
-                "analyst": analyst,
+                "analyst": safe_analyst,
                 "timestamp": datetime.datetime.now().isoformat()
             }
-            return {"status": "ok", "message": "Feedback enregistré"}
-    raise HTTPException(status_code=404, detail="Transaction non trouvée")
+            return {"status": "ok", "message": "Feedback enregistre"}
+    raise HTTPException(status_code=404, detail="Transaction non trouvee")
 
 
 @app.websocket("/ws/stream")
 async def websocket_stream(websocket: WebSocket):
     await websocket.accept()
+    allowed, _ = rate_limiter.is_allowed(websocket.client.host if websocket.client else "ws_unknown")
+    if not allowed:
+        await websocket.close(code=1008)
+        return
     await websocket.send_json({"status": "connected", "message": "FRAUDX streaming actif"})
-
     try:
         while True:
             data = await websocket.receive_json()
+            if "TransactionAmt" not in data:
+                await websocket.send_json({"error": "Champ TransactionAmt requis"})
+                continue
             result = process_transaction(data)
             prediction_log.append(result)
             await websocket.send_json(result)
@@ -289,80 +279,51 @@ async def websocket_stream(websocket: WebSocket):
         await websocket.close()
 
 
-class StreamConfig(BaseModel):
-    continuous: bool = Field(False, description="Mode flux continu")
-    delay_ms: int = Field(500, ge=100, le=10000, description="Délai entre chaque analyse en mode continu")
-
-
 class TogoTransaction(BaseModel):
-    montant_cfa: float = Field(..., description="Montant en FCFA")
-    canal: str = Field(..., description="Canal (USSD, APP, AGENT, WEB)")
-    operateur: str = Field(..., description="Opérateur (TogoCom Cash, Moov Money, Flooz)")
-    ville: str = Field(..., description="Ville au Togo")
-    type_operation: str = Field(..., description="Type (RECHARGE, TRANSFERT, PAIEMENT, RETRAIT)")
-    device_change_days: float = Field(0, description="Jours depuis dernier changement SIM")
-    tx_last_30min: float = Field(0, description="Transactions dans les 30 dernières minutes")
+    montant_cfa: float = Field(..., gt=0, le=10_000_000)
+    canal: str = Field(..., pattern=r"^(USSD|APP|AGENT|WEB)$")
+    operateur: str = Field(..., pattern=r"^(TogoCom Cash|Moov Money|Flooz)$")
+    ville: str = Field(..., max_length=100)
+    type_operation: str = Field(..., pattern=r"^(RECHARGE|TRANSFERT|PAIEMENT|RETRAIT)$")
+    device_change_days: float = Field(0, ge=0)
+    tx_last_30min: float = Field(0, ge=0)
     hour: Optional[int] = Field(None, ge=0, le=23)
     dayofweek: Optional[int] = Field(None, ge=0, le=6)
-
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "montant_cfa": 50000,
-                "canal": "USSD",
-                "operateur": "TogoCom Cash",
-                "ville": "Lomé",
-                "type_operation": "TRANSFERT",
-                "device_change_days": 0,
-                "tx_last_30min": 3,
-                "hour": 14,
-                "dayofweek": 3
-            }
-        }
 
 
 CANAL_TO_PRODUCTCD = {"USSD": "W", "APP": "H", "AGENT": "C", "WEB": "S"}
 OPERATEUR_TO_CARD4 = {"TogoCom Cash": "visa", "Moov Money": "mastercard", "Flooz": "discover"}
 
 
-@app.post("/predict/togo", response_model=PredictionResponse, tags=["Togo Mobile Money"])
-def predict_togo(tx: TogoTransaction):
-    """
-    Endpoint spécialisé pour les transactions mobile money au Togo.
-    Mappe automatiquement les champs togolais vers le format du modèle.
-    """
+@app.post("/predict/togo", tags=["Togo Mobile Money"])
+def predict_togo(tx: TogoTransaction, auth: str = Depends(verify_auth)):
     mapped = {
         "TransactionAmt": tx.montant_cfa,
         "TransactionDT": None,
-        "card1": abs(hash(tx.operateur + tx.ville)) % 10000,
+        "card1": hash_tx_value(f"{tx.operateur}{tx.ville}"),
         "card4": OPERATEUR_TO_CARD4.get(tx.operateur, "visa"),
         "ProductCD": CANAL_TO_PRODUCTCD.get(tx.canal, "W"),
-        "addr1": abs(hash(tx.ville)) % 1000,
+        "addr1": hash_tx_value(tx.ville),
         "D1": tx.device_change_days,
         "C1": tx.tx_last_30min,
         "hour": tx.hour if tx.hour is not None else 12,
         "dayofweek": tx.dayofweek if tx.dayofweek is not None else 3
     }
-
     transaction = Transaction(**mapped)
     return predict(transaction)
 
 
-@app.post("/predict/stream", tags=["Prédiction"])
-def predict_stream(transaction: Transaction, config: StreamConfig = StreamConfig()):
-    """
-    Endpoint pour analyse unique avec configuration du mode streaming.
-    Utilisé par le dashboard pour afficher les résultats en temps réel.
-    """
+@app.post("/predict/stream", tags=["Prediction"])
+def predict_stream(transaction: Transaction, auth: str = Depends(verify_auth)):
     return predict(transaction)
 
 
 def main():
-    """Point d'entrée pour la CLI (setup.py console_scripts)."""
     port = int(os.environ.get("API_PORT", 8000))
     host = os.environ.get("API_HOST", "0.0.0.0")
-    logger.info(f"🚀 FRAUDX API démarrée sur {host}:{port}")
-    uvicorn.run("src.api:app", host=host, port=port, reload=False)
+    log_level = os.environ.get("LOG_LEVEL", "info").lower()
+    logger.info(f"FRAUDX API demarree sur {host}:{port}")
+    uvicorn.run("src.api:app", host=host, port=port, reload=False, log_level=log_level)
 
 
 if __name__ == "__main__":

@@ -8,7 +8,7 @@ Ce deuxième chapitre expose la méthodologie employée pour répondre aux quest
 
 ## 2.1. Nature de l'étude
 
-La présente étude s'inscrit dans une démarche **prospective** à **approche mixte** (qualitative et quantitative), de type **non expérimental à visée explicative**. Elle correspond au niveau **Compréhensif** selon la classification de FUNIBER (2017), dont l'objectif est de *Proposer* une solution fondée sur une analyse rigoureuse des données et de la littérature existante.
+La présente étude s'inscrit dans une démarche **prospective** à **approche mixte** (qualitative et quantitative), de type **non expérimental à visée explicative**. Elle s'inscrit dans une logique de recherche en sciences sociales telle que décrite par Quivy & Van Campenhoudt (2006), et correspond au niveau **Compréhensif** selon la classification de FUNIBER (2017), dont l'objectif est de *Proposer* une solution fondée sur une analyse rigoureuse des données et de la littérature existante.
 
 **Approche quantitative :** elle repose sur l'entraînement et l'évaluation comparative de trois algorithmes de Machine Learning (Isolation Forest, Random Forest, XGBoost) sur un jeu de données de transactions financières. Les performances sont mesurées à l'aide de métriques objectives (F1-Score, Recall, AUC-PR) et confrontées aux résultats rapportés dans la littérature.
 

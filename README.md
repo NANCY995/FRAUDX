@@ -33,12 +33,17 @@ FRAUDX/
 ├── fraudx/                      # Package Python
 │   ├── preprocessing.py         # Transformation des données
 │   ├── synthetic_data.py        # Génération données synthétiques Togo
+│   ├── security.py              # Sécurité : sanitisation XSS, rate limiting, validation
+│   ├── ui.py                    # Helpers Streamlit (CSS, gauges, sidebar)
+│   ├── pages/                   # Pages Streamlit factorisées
+│   │   ├── dataset.py           #   Page Dataset
+│   │   └── __init__.py
 │   ├── cli.py                   # Interface CLI
-│   ├── config.py                # Configuration
-│   ├── db.py                    # Base SQLite (logs, feedback)
+│   ├── config.py                # Configuration centralisée (.env)
+│   ├── db.py                    # Base SQLite (requêtes paramétrées, WAL)
 │   └── metrics.py               # Métriques personnalisées
 ├── src/
-│   └── api.py                   # API FastAPI (5 endpoints)
+│   └── api.py                   # API FastAPI sécurisée (CORS, auth token, rate limit)
 ├── models_optuna/               # Modèle final XGBoost + artefacts
 │   ├── xgb_model.pkl            # Modèle entraîné (483 features)
 │   ├── best_threshold.npy       # Seuil optimal
@@ -82,8 +87,9 @@ Données (IEEE-CIS 590k lignes)
 - **ML/DL :** Scikit-learn, XGBoost, Imbalanced-learn (SMOTE)
 - **Optimisation :** Optuna
 - **Explicabilité :** SHAP (TreeExplainer)
-- **API :** FastAPI + Uvicorn
+- **API :** FastAPI + Uvicorn (auth token, rate limiting, CORS restreint)
 - **Dashboard :** Streamlit + Plotly
+- **Sécurité :** Sanitisation XSS, validation Pydantic, requêtes SQL paramétrées, hash SHA-256
 - **Déploiement :** Streamlit Cloud (gratuit)
 
 ## Déploiement
@@ -120,7 +126,7 @@ Les tests couvrent : prédiction IEEE-CIS, batch, Mobile Money Togo, scénarios 
 
 - **Données réelles Togo :** Les tests Mobile Money utilisent des données synthétiques faute de données réelles disponibles. Une collaboration avec un opérateur (TogoCom, Moov, Flooz) permettrait de valider le modèle en conditions réelles.
 - **Généralisation :** Le modèle est entraîné sur IEEE-CIS (USA). L'adaptation au contexte ouest-africain nécessite un réentraînement sur des données locales.
-- **Production :** L'API et le dashboard sont fonctionnels, mais une mise en production nécessiterait une infrastructure cloud scalable (authentification, monitoring, HA).
+- **Production :** L'API et le dashboard sont fonctionnels (auth token, CORS, rate limiting), mais une mise en production complète nécessiterait une infrastructure cloud scalable (monitoring, HA).
 - **Réentraînement continu :** Un workflow GitHub Actions permet le réentraînement planifié, mais l'intégration avec des données fraîches n'est pas encore automatisée.
 - **Scalabilité :** L'API FastAPI n'est pas déployée sur le cloud (seul le dashboard Streamlit est en ligne). Le déploiement complet API + BDD nécessite Render/Supabase.
 
