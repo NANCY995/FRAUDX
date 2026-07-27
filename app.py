@@ -23,6 +23,19 @@ st.markdown(f"<style>{FRAUDX_CSS}</style>", unsafe_allow_html=True)
 
 init_session_state()
 
+def report_html(metrics):
+    status = "validee" if metrics['recall'] >= 0.85 else "non validee"
+    return f"""<html><body style="font-family:Arial;background:#0a1628;color:#e8eaf6;padding:40px">
+<h1>FRAUDX - Rapport d'entrainement</h1>
+<p>Date : {datetime.now().strftime('%d/%m/%Y %H:%M')}</p>
+<ul>
+<li>Recall : {metrics['recall']:.2%} -> Hypothes {status}</li>
+<li>Precision : {metrics['precision']:.2%}</li>
+<li>F1-Score : {metrics['f1']:.4f}</li>
+<li>AUC-PR : {metrics['auc_pr']:.4f}</li>
+<li>Seuil : {metrics['threshold']:.4f}</li>
+</ul></body></html>"""
+
 # Auto-load model
 if not st.session_state.model_loaded:
     model_path = Path("models_optuna/xgb_model.pkl")
@@ -262,20 +275,6 @@ elif page == "Resultats":
         st.download_button("Modele (joblib)", data=buf, file_name="fraudx_model.pkl", use_container_width=True)
     with col_e3:
         st.download_button("Rapport (HTML)", data=report_html(m), file_name="fraudx_report.html", use_container_width=True)
-
-
-def report_html(metrics):
-    status = "validee" if metrics['recall'] >= 0.85 else "non validee"
-    return f"""<html><body style="font-family:Arial;background:#0a1628;color:#e8eaf6;padding:40px">
-<h1>FRAUDX - Rapport d'entrainement</h1>
-<p>Date : {datetime.now().strftime('%d/%m/%Y %H:%M')}</p>
-<ul>
-<li>Recall : {metrics['recall']:.2%} -> Hypothes {status}</li>
-<li>Precision : {metrics['precision']:.2%}</li>
-<li>F1-Score : {metrics['f1']:.4f}</li>
-<li>AUC-PR : {metrics['auc_pr']:.4f}</li>
-<li>Seuil : {metrics['threshold']:.4f}</li>
-</ul></body></html>"""
 
 
 # ─── PAGE 5: Benchmark ───

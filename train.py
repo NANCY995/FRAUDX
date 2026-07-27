@@ -55,6 +55,10 @@ def parse_args():
                         help="Dossier de sortie pour les modèles")
     parser.add_argument("--seed", type=int, default=42,
                         help="Seed aléatoire")
+    parser.add_argument("--togo", action="store_true",
+                        help="Entraîner sur données synthétiques Togo (mobile money + USSD)")
+    parser.add_argument("--n-transactions", type=int, default=50000,
+                        help="Nombre de transactions Togo à générer")
     return parser.parse_args()
 
 
@@ -480,18 +484,30 @@ def main():
     args = parse_args()
     output_dir = args.output
 
-    print(f"Dataset : {args.dataset}")
+    print(f"Dataset : {'Togo (synthetique)' if args.togo else args.dataset}")
     print(f"Mode : {'Rapide' if args.fast else 'Complet'}")
+    if args.togo:
+        print(f"Transactions Togo : {args.n_transactions}")
     print(f"Output : {output_dir}/")
     print()
 
-    # 1. Download
-    train_path, id_path = download_data(args)
-
-    # 2. Load
-    df = load_and_merge(train_path, id_path, fast=args.fast)
-    print(f"   Dimensions : {df.shape}")
-    print(f"   Taux fraude : {df['isFraud'].mean()*100:.2f}%")
+    if args.togo:
+        from fraudx.synthetic_data import generate_togo_dataset
+        df = generate_togo_dataset(n_transactions=args.n_transactions, fraud_rate=0.035, seed=args.seed)
+        df = df.rename(columns={"montant_cfa": "TransactionAmt", "ville": "addr1",
+                                "operateur": "card4", "canal": "ProductCD",
+                                "device_change_days": "D1", "tx_last_30min": "C1"})
+        df["TransactionDT"] = range(len(df))
+        df["isFraud"] = df["isFraud"].astype(int)
+        print(f"Dimensions : {df.shape}")
+        print(f"Taux fraude : {df['isFraud'].mean()*100:.2f}%")
+    else:
+        # 1. Download
+        train_path, id_path = download_data(args)
+        # 2. Load
+        df = load_and_merge(train_path, id_path, fast=args.fast)
+        print(f"   Dimensions : {df.shape}")
+        print(f"   Taux fraude : {df['isFraud'].mean()*100:.2f}%")
 
     # 3. Preprocess
     X_train, X_test, y_train, y_test = preprocess(df, output_dir)

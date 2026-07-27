@@ -7,6 +7,10 @@ import uuid
 import datetime
 import logging
 import time
+import hashlib
+import hmac
+import base64
+import json
 from pathlib import Path
 from typing import List, Optional
 
@@ -42,16 +46,69 @@ model = joblib.load(model_path)
 logger.info(f"Modele charge : {model_path}")
 explainer = shap.TreeExplainer(model)
 
-API_KEY = os.getenv("FRAUDX_API_KEY", "")
 ALLOWED_ORIGINS = os.getenv(
     "ALLOWED_ORIGINS",
     "https://fraudx-memoirel3.streamlit.app,http://localhost:8501,http://localhost:8000"
 ).split(",")
 
+JWT_SECRET = os.getenv("JWT_SECRET", "fraudx-dev-secret-change-in-prod")
+JWT_ALGO = "HS256"
+JWT_EXPIRY_HOURS = 24
+
+ROLES = ["analyste", "superviseur", "administrateur"]
+
+USERS = {
+    "analyste1": {"password": "fraudx2025", "role": "analyste", "nom": "Analyste Test"},
+    "superviseur1": {"password": "fraudx2025", "role": "superviseur", "nom": "Superviseur Test"},
+    "admin1": {"password": "fraudx2025", "role": "administrateur", "nom": "Admin Test"},
+}
+
+ENDPOINT_ROLES = {
+    "/predict": ["analyste", "superviseur", "administrateur"],
+    "/predict/togo": ["analyste", "superviseur", "administrateur"],
+    "/batch": ["analyste", "superviseur", "administrateur"],
+    "/explain": ["analyste", "superviseur", "administrateur"],
+    "/feedback": ["analyste", "superviseur", "administrateur"],
+    "/logs": ["superviseur", "administrateur"],
+    "/users": ["administrateur"],
+    "/health": ["analyste", "superviseur", "administrateur"],
+}
+
+
+def _b64url(data: bytes) -> str:
+    return base64.urlsafe_b64encode(data).rstrip(b"=").decode()
+
+
+def create_jwt(username: str, role: str) -> str:
+    header = _b64url(json.dumps({"alg": JWT_ALGO, "typ": "JWT"}).encode())
+    now = int(time.time())
+    payload = _b64url(json.dumps({
+        "sub": username, "role": role, "iat": now, "exp": now + JWT_EXPIRY_HOURS * 3600
+    }).encode())
+    sig = _b64url(hmac.new(JWT_SECRET.encode(), f"{header}.{payload}".encode(), hashlib.sha256).digest())
+    return f"{header}.{payload}.{sig}"
+
+
+def decode_jwt(token: str) -> dict:
+    try:
+        parts = token.split(".")
+        if len(parts) != 3:
+            raise ValueError("Bad token format")
+        expected_sig = _b64url(hmac.new(JWT_SECRET.encode(), f"{parts[0]}.{parts[1]}".encode(), hashlib.sha256).digest())
+        if not hmac.compare_digest(parts[2], expected_sig):
+            raise ValueError("Invalid signature")
+        payload = json.loads(base64.urlsafe_b64decode(parts[1] + "=="))
+        if payload.get("exp", 0) < time.time():
+            raise ValueError("Token expired")
+        return payload
+    except Exception as e:
+        raise HTTPException(status_code=401, detail=f"Token invalide: {str(e)}")
+
+
 app = FastAPI(
     title="FRAUDX - Detection de fraude bancaire",
-    description="API temps reel avec explicabilite SHAP",
-    version="2.1.0",
+    description="API temps reel avec explicabilite SHAP et RBAC",
+    version="3.0.0",
     contact={"name": "Johnson Nancy", "organization": "Elna Comply"}
 )
 
@@ -64,14 +121,35 @@ app.add_middleware(
 )
 
 
+@app.post("/auth/login", tags=["Authentication"])
+def login(username: str, password: str):
+    user = USERS.get(username)
+    if not user or user["password"] != password:
+        raise HTTPException(status_code=401, detail="Identifiants invalides")
+    token = create_jwt(username, user["role"])
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "expires_in": JWT_EXPIRY_HOURS * 3600,
+        "username": username,
+        "role": user["role"],
+        "nom": user["nom"]
+    }
+
+
 def verify_auth(credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)) -> str:
-    if not API_KEY:
-        return "anonymous"
     if not credentials:
-        raise HTTPException(status_code=401, detail="Authentification requise")
-    if credentials.credentials != API_KEY:
-        raise HTTPException(status_code=403, detail="Cle API invalide")
-    return "authenticated"
+        raise HTTPException(status_code=401, detail="Token requis")
+    payload = decode_jwt(credentials.credentials)
+    return payload
+
+
+def require_role(required_roles: List[str]):
+    def role_checker(payload: dict = Depends(verify_auth)):
+        if payload.get("role") not in required_roles:
+            raise HTTPException(status_code=403, detail="Role insuffisant")
+        return payload
+    return role_checker
 
 
 @app.middleware("http")
@@ -147,6 +225,7 @@ def process_transaction(tx: dict) -> dict:
     df = FeatureEngineer.add_behavioral_features(df)
     df = FeatureEngineer.add_velocity_features(df)
     df = FeatureEngineer.add_email_features(df)
+    df = FeatureEngineer.add_ussd_features(df)
 
     for col in df.select_dtypes(include=["object"]).columns:
         try:
@@ -167,7 +246,7 @@ def process_transaction(tx: dict) -> dict:
 
     shap_values = explainer.shap_values(X)
     importance = np.abs(shap_values[0])
-    top_idx = np.argsort(importance)[-3:][::-1]
+    top_idx = np.argsort(importance)[-5:][::-1]
 
     top_features = []
     for i in top_idx:
@@ -194,18 +273,20 @@ def process_transaction(tx: dict) -> dict:
 
 @app.get("/", tags=["Status"])
 def root():
-    return {"service": "FRAUDX", "version": "2.1.0", "docs": "/docs", "status": "operationnel"}
+    return {"service": "FRAUDX", "version": "3.0.0", "docs": "/docs", "status": "operationnel"}
 
 
-@app.get("/health", response_model=HealthResponse, tags=["Status"])
+@app.get("/health", tags=["Status"])
 def health():
-    return HealthResponse(status="healthy", model_loaded=True, model_type=type(model).__name__, version="2.1.0")
+    return HealthResponse(status="healthy", model_loaded=True, model_type=type(model).__name__, version="3.0.0")
 
 
 @app.post("/predict", tags=["Prediction"])
-def predict(transaction: Transaction, auth: str = Depends(verify_auth)):
+def predict(transaction: Transaction, payload: dict = Depends(require_role(["analyste", "superviseur", "administrateur"]))):
     try:
         result = process_transaction(transaction.dict())
+        result["analyse_par"] = payload.get("sub", "unknown")
+        result["role"] = payload.get("role", "unknown")
         prediction_log.append(result)
         return result
     except Exception as e:
@@ -213,7 +294,7 @@ def predict(transaction: Transaction, auth: str = Depends(verify_auth)):
 
 
 @app.post("/batch", response_model=BatchResponse, tags=["Prediction"])
-def batch_predict(batch: BatchRequest, auth: str = Depends(verify_auth)):
+def batch_predict(batch: BatchRequest, payload: dict = Depends(require_role(["analyste", "superviseur", "administrateur"]))):
     results = []
     for tx in batch.transactions:
         try:
@@ -234,15 +315,71 @@ def batch_predict(batch: BatchRequest, auth: str = Depends(verify_auth)):
     return BatchResponse(predictions=results, total=len(results), fraud_count=fraud_count)
 
 
+@app.post("/explain", tags=["Explicabilite"])
+def explain(transaction: Transaction, payload: dict = Depends(require_role(["analyste", "superviseur", "administrateur"]))):
+    try:
+        df = FeatureEngineer.add_temporal_features(pd.DataFrame([transaction.dict()]))
+        df = FeatureEngineer.add_amount_features(df)
+        df = FeatureEngineer.add_behavioral_features(df)
+        df = FeatureEngineer.add_velocity_features(df)
+        df = FeatureEngineer.add_email_features(df)
+        df = FeatureEngineer.add_ussd_features(df)
+
+        for col in df.select_dtypes(include=["object"]).columns:
+            try:
+                df[col] = pd.to_numeric(df[col], errors="ignore")
+            except Exception:
+                pass
+
+        X = preprocessor.transform(df)
+        expected = model.get_booster().feature_names
+        for col in expected:
+            if col not in X.columns:
+                X[col] = 0.0
+        X = X[expected]
+
+        shap_values = explainer.shap_values(X)
+        importance = np.abs(shap_values[0])
+        all_idx = np.argsort(importance)[::-1]
+
+        all_features = []
+        for i in all_idx:
+            col = X.columns[i]
+            all_features.append({
+                "feature": col,
+                "value": float(X.iloc[0, i]) if not isinstance(X.iloc[0, i], (str, bytes)) else str(X.iloc[0, i]),
+                "shap_value": float(shap_values[0, i]),
+                "abs_importance": float(importance[i]),
+                "impact": "positif (fraude)" if shap_values[0, i] > 0 else "negatif (normale)"
+            })
+
+        proba = float(model.predict_proba(X)[0, 1])
+        threshold = preprocessor.best_threshold
+        prediction = "FRAUDE" if proba >= threshold else "NORMALE"
+
+        return {
+            "prediction": prediction,
+            "fraud_score": proba,
+            "threshold": float(threshold),
+            "top_5": all_features[:5],
+            "all_features_sorted": all_features,
+            "total_features": len(all_features),
+            "analyse_par": payload.get("sub", "unknown"),
+            "role": payload.get("role", "unknown")
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Erreur d'explicabilite : {str(e)}")
+
+
 @app.get("/logs", tags=["Monitoring"])
-def get_logs(limit: int = 50, auth: str = Depends(verify_auth)):
+def get_logs(limit: int = 50, payload: dict = Depends(require_role(["superviseur", "administrateur"]))):
     safe_limit = min(max(limit, 1), 1000)
     return {"total": len(prediction_log), "recent": prediction_log[-safe_limit:]}
 
 
 @app.post("/feedback", tags=["Monitoring"])
 def submit_feedback(transaction_id: str, is_fraud: bool, analyst: str = "anonymous",
-                    auth: str = Depends(verify_auth)):
+                    payload: dict = Depends(require_role(["analyste", "superviseur", "administrateur"]))):
     safe_analyst = validate_string_length(analyst, 100)
     for entry in reversed(prediction_log):
         if entry.get("transaction_id") == transaction_id:
@@ -253,6 +390,16 @@ def submit_feedback(transaction_id: str, is_fraud: bool, analyst: str = "anonymo
             }
             return {"status": "ok", "message": "Feedback enregistre"}
     raise HTTPException(status_code=404, detail="Transaction non trouvee")
+
+
+@app.get("/users", tags=["Administration"])
+def list_users(payload: dict = Depends(require_role(["administrateur"]))):
+    return {
+        "users": [
+            {"username": k, "role": v["role"], "nom": v["nom"]}
+            for k, v in USERS.items()
+        ]
+    }
 
 
 @app.websocket("/ws/stream")
@@ -296,7 +443,7 @@ OPERATEUR_TO_CARD4 = {"TogoCom Cash": "visa", "Moov Money": "mastercard", "Flooz
 
 
 @app.post("/predict/togo", tags=["Togo Mobile Money"])
-def predict_togo(tx: TogoTransaction, auth: str = Depends(verify_auth)):
+def predict_togo(tx: TogoTransaction, payload: dict = Depends(require_role(["analyste", "superviseur", "administrateur"]))):
     mapped = {
         "TransactionAmt": tx.montant_cfa,
         "TransactionDT": None,
@@ -307,15 +454,33 @@ def predict_togo(tx: TogoTransaction, auth: str = Depends(verify_auth)):
         "D1": tx.device_change_days,
         "C1": tx.tx_last_30min,
         "hour": tx.hour if tx.hour is not None else 12,
-        "dayofweek": tx.dayofweek if tx.dayofweek is not None else 3
+        "dayofweek": tx.dayofweek if tx.dayofweek is not None else 3,
+        "canal": tx.canal,
+        "operateur": tx.operateur,
+        "ville": tx.ville,
+        "type_operation": tx.type_operation,
+        "device_change_days": tx.device_change_days,
+        "tx_last_30min": tx.tx_last_30min
     }
     transaction = Transaction(**mapped)
-    return predict(transaction)
+    result = predict(transaction)
 
+    ussd_risk = []
+    if tx.canal == "USSD" and tx.device_change_days <= 1 and tx.montant_cfa > 30000:
+        ussd_risk.append("SIM SWAP suspect (canal USSD + changement appareil recent + montant eleve)")
+    if tx.tx_last_30min >= 3:
+        ussd_risk.append("CASCADE de transferts (3+ transactions en 30 min)")
+    if tx.canal == "AGENT" and tx.montant_cfa % 10000 == 0 and tx.montant_cfa > 100000:
+        ussd_risk.append("AGENT frauduleux suspect (montant ronde eleve)")
+    if tx.canal == "USSD" and tx.hour and tx.hour >= 0 and tx.hour <= 5 and tx.montant_cfa > 50000:
+        ussd_risk.append("TRANSACTION INHABITUELLE (heure creuse + montant eleve)")
 
-@app.post("/predict/stream", tags=["Prediction"])
-def predict_stream(transaction: Transaction, auth: str = Depends(verify_auth)):
-    return predict(transaction)
+    if ussd_risk:
+        result["ussd_risk_factors"] = ussd_risk
+    result["canal"] = tx.canal
+    result["operateur"] = tx.operateur
+    result["montant_fcfa"] = tx.montant_cfa
+    return result
 
 
 def main():

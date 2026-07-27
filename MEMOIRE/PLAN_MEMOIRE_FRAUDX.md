@@ -187,7 +187,11 @@ Outil retenu : **SHAP (SHapley Additive exPlanations)**, permettant d'expliquer 
   - **Chapitre III** — les résultats des entretiens alimentent la section "Présentation des données collectées" (état des lieux de la fraude perçue par les praticiens) et permettent de discuter la transférabilité des variables du modèle IEEE-CIS au contexte togolais.
   - **Chapitre IV** — les résultats du codage thématique nourrissent directement le diagnostic (4.1) et la vérification des hypothèses HS2 et HS3 (acceptabilité, conformité, interprétabilité perçue).
 
-**2.4.5. Métriques d'évaluation**
+**2.4.5. Volet quantitatif complémentaire — questionnaire TAM**
+
+*Questionnaire basé sur le Technology Acceptance Model (Davis, 1989) pour mesurer l'utilité perçue, la facilité d'utilisation, la confiance et l'intention d'adoption du système FRAUDX par les professionnels bancaires togolais (20 items, échelle Likert 5 niveaux). Voir Annexe B.*
+
+**2.4.6. Métriques d'évaluation**
 
 L'« Accuracy » seule n'étant pas pertinente sur données déséquilibrées, les métriques retenues sont :
 

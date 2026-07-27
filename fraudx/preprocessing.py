@@ -86,6 +86,35 @@ class FraudPreprocessor:
 
 class FeatureEngineer:
     @staticmethod
+    def add_ussd_features(df: pd.DataFrame) -> pd.DataFrame:
+        canal_map = {"USSD": 1, "APP": 2, "AGENT": 3, "WEB": 4}
+        operateur_map = {"TogoCom Cash": 1, "Moov Money": 2, "Flooz": 3}
+        operation_map = {"RECHARGE": 1, "TRANSFERT": 2, "PAIEMENT": 3, "RETRAIT": 4}
+        if 'canal' in df.columns:
+            df['canal_code'] = df['canal'].map(canal_map).fillna(0)
+            df['est_ussd'] = (df['canal'] == 'USSD').astype(int)
+            df['est_agent'] = (df['canal'] == 'AGENT').astype(int)
+        if 'operateur' in df.columns:
+            df['operateur_code'] = df['operateur'].map(operateur_map).fillna(0)
+            df['est_togocom'] = (df['operateur'] == 'TogoCom Cash').astype(int)
+        if 'type_operation' in df.columns:
+            df['operation_code'] = df['type_operation'].map(operation_map).fillna(0)
+            df['est_transfert'] = (df['type_operation'] == 'TRANSFERT').astype(int)
+            df['est_retrait'] = (df['type_operation'] == 'RETRAIT').astype(int)
+        if 'device_change_days' in df.columns:
+            df['device_change_hours'] = df['device_change_days'] * 24
+            df['sim_swap_risk'] = (df['device_change_days'] <= 1).astype(int)
+        if 'tx_last_30min' in df.columns:
+            df['tx_velocity_risk'] = (df['tx_last_30min'] >= 3).astype(int)
+        if 'hour' in df.columns:
+            pics_mm = [8, 9, 10, 17, 18, 19]
+            df['heure_pic_mm'] = df['hour'].isin(pics_mm).astype(int)
+            df['heure_creuse_mm'] = ((df['hour'] >= 0) & (df['hour'] <= 5)).astype(int)
+        if 'ville' in df.columns:
+            df['ville_code'] = pd.factorize(df['ville'])[0]
+        return df
+
+    @staticmethod
     def add_temporal_features(df: pd.DataFrame) -> pd.DataFrame:
         if 'TransactionDT' in df.columns:
             start = pd.Timestamp("2017-12-01")
