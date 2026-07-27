@@ -105,7 +105,7 @@ La littérature technique abonde en modèles performants de détection de fraude
 
 #### 6.1. Délimitation géographique
 
-L'étude se concentre sur le système bancaire et les opérateurs de mobile money au Togo, avec un focus sur Lomé comme principal centre financier du pays. Les entretiens qualitatifs sont menés auprès de responsables basés à Lomé, tandis que l'analyse quantitative s'appuie sur un dataset international utilisé comme proxy du contexte togolais.
+L'étude se concentre sur le système bancaire et les opérateurs de mobile money au Togo, avec un focus sur Lomé comme principal centre financier du pays. L'analyse quantitative s'appuie sur un dataset international utilisé comme proxy du contexte togolais. Un volet qualitatif (entretiens) est proposé en perspective.
 
 #### 6.2. Délimitation thématique
 

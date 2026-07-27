@@ -53,7 +53,7 @@
 - **HG :** L'ensemble learning améliore significativement la détection
 - **HS1 :** XGBoost atteint Recall ≥ 85% ✅ Validée
 - **HS2 :** Données locales améliorent la précision ❌ Non vérifiable
-- **HS3 :** SHAP facilite l'adoption ✅ Validée (FP < 2%)
+- **HS3 :** SHAP facilite l'adoption ❌ Non validée (FP = 20,7%)
 
 ---
 
@@ -91,21 +91,18 @@
 
 ## Partie V — RÉSULTATS EXPÉRIMENTAUX (Ch. III)
 
-### Diapositive 10 — 5.1 Comparaison des modèles
-- F1-Score XGBoost : **0,607**
-- Recall (seuil 0,325) : **85,02%**
-- Précision : 13,54%
-- AUC-PR : 0,574
-- F1 Random Forest : 0,370
-- F1 Isolation Forest : 0,161
+### Diapositive 10 — 5.1 Comparaison des modèles (seuil 0,5)
+- **XGBoost :** F1=**0,61** | Recall=0,47 | AUC-PR=0,66 | Précision=0,87
+- Random Forest : F1=0,37 | Recall=0,57 | Précision=0,28
+- Isolation Forest : F1=0,16 | Recall=0,16 | Précision=0,16
+- XGBoost meilleur score F1 et AUC-PR
 
-### Diapositive 11 — 5.2 Optimisation Optuna et matrice de confusion
-- F1 base 0,53 → 0,607 (+14,5%)
-- Recall base 51,6% → 85,0%
-- Seuil optimisé ~0,325
-- 85% des fraudes détectées, 1,55% FP
-- Inférence : 0,016 ms/tx
-- **Comparaison :** Moradi (2025) AUC-ROC 0,918 vs notre AUC-ROC ~0,87
+### Diapositive 11 — 5.2 Optimisation du seuil et impact
+- Passage seuil 0,5 → **0,35**
+- Recall 47 % → **85,02 %** (+81 % de fraudes détectées)
+- Précision 87 % → 13,54 % (FP = 20,7 %)
+- F1 0,61 → 0,23 (arbitrage assumé)
+- **Arbitrage :** coût FN >> coût FP en contexte bancaire
 
 ### Diapositive 12 — 5.3 Analyse SHAP : features importantes
 - Top 5 : TransactionAmt (0,42), card6_credit (0,31), dayofweek (0,25), hour_of_day (0,18), addr1 (0,12)
@@ -140,7 +137,7 @@
 - **HG :** Partiellement validée
 - **HS1 :** Validée ✅ (Recall=85,02%)
 - **HS2 :** Non vérifiable (perspective)
-- **HS3 :** Validée ✅ (FP 1,55%)
+- **HS3 :** Non validée ❌ (FP 20,7% >> 2%)
 
 ---
 
@@ -176,8 +173,8 @@
 
 ## Diapositive 21 — CONCLUSION
 - ✓ FRAUDX déployé sur Streamlit Cloud
-- ✓ Recall 85%, F1=0,607, AUC-PR=0,574
-- ✓ SHAP intégré, FP < 2%
+- ✓ Recall 85% après optimisation du seuil (arbitrage assumé)
+- ✓ SHAP intégré pour l'explicabilité des alertes
 - ✓ Architecture 3 niveaux validée
 - ✓ ROI 239% sur 3 ans
 - **→ L'IA n'est pas une option mais une nécessité**
