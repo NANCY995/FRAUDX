@@ -1,0 +1,14 @@
+\begin{table}[h]
+\centering
+\caption{Comparaison des performances des modèles}
+\label{tab:model_comparison}
+\begin{tabular}{lccccccc}
+\toprule
+Modèle & F1-Score & Recall & Precision & AUC-PR & AUC-ROC & FP & FN \\
+\midrule
+  Isolation Forest & 0.1607 & 0.1582 & 0.1633 & 0.0854 & 0.7315 & 415 & 431 \\
+  Random Forest & 0.3704 & 0.5664 & 0.2751 & 0.4920 & 0.8888 & 764 & 222 \\
+  XGBoost & 0.6074 & 0.4668 & 0.8691 & 0.6570 & 0.9246 & 36 & 273 \\
+\bottomrule
+\end{tabular}
+\end{table}

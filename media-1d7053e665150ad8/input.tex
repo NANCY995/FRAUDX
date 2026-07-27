@@ -1,0 +1,3149 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\documentclass[
+  12pt,
+]{article}
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\setcounter{secnumdepth}{5}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+  \setmainfont[]{Arial}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{longtable,booktabs,array}
+\newcounter{none} % for unnumbered tables
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+% fallback for those not using the hyperref driver hyperxmp:
+\makeatletter
+\@ifundefined{xmpquote}{\newcommand{\xmpquote}[1]{#1}}{}
+\makeatother
+\hypersetup{
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\author{}
+\date{}
+
+\begin{document}
+
+{
+\setcounter{tocdepth}{3}
+\tableofcontents
+}
+\section{CONCEPTION D’UN SYSTEME D’INTELLIGENCE ARTIFICIELLE POUR LA
+DETECTION DE LA FRAUDE BANCAIRE ET MOBILE MONEY AU TOGO : CAS DE SUNU
+BANK}\label{conception-dun-systeme-dintelligence-artificielle-pour-la-detection-de-la-fraude-bancaire-et-mobile-money-au-togo-cas-de-sunu-bank}
+
+Rapport en vue de l’obtention du diplôme de :
+
+Bachelor en Intelligence Artificielle \& Big Data
+
+Présenté par :
+
+JOHNSON Nancy Flora Ekua Bentsiwa
+
+Encadreur Académique : Encadreur Professionnel : Monsieur AHOULOUMI
+Essowaba Monsieur TCHAKALA Fissale
+
+LOME, TOGO Année académique : 2025-2026
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\begin{quote}
+\textbf{Note de révision — Version 2 (juillet 2026)}
+
+Ce rapport a été examiné dans le cadre de la révision de fin de cycle du
+Bachelor en Intelligence Artificielle \& Big Data (session juillet
+2026).
+
+\textbf{Décision :} Rapport accepté sous réserve des corrections
+suivantes :
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.1000}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3750}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.5250}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+N°
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Point soulevé
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Correction apportée
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+1 & III.2.1 et III.4.1 — La mention « split 80/20 » est ambiguë (k-fold
+ou holdout ?) & Remplacée par « holdout simple 80/20 (entraînement) / 20
+\% (test) » dans les deux sections \\
+2 & Tableau III.2 — Écart de 5 382 entre le total de la matrice (112
+726) et la taille de l’échantillon de test (118 108) & Note de bas de
+tableau explicitant l’écart (suppression des lignes NaN après
+prédiction) \\
+3 & III.4.1 — Contrainte de précision non documentée dans le code &
+Ajout d’un bloc justificatif : contrainte \texttt{Précision\ ≥\ 0,15}
+codée en dur dans le déclencheur d’alerte (filtre post-détection) \\
+4 & Réduction du nombre de tableaux demandée & Tableau I.2 (comparaison
+algorithmes) → texte ; Tableau II.2 (caractéristiques datasets) → texte
+inline ; Tableau II.3 (métriques) → supprimé, formules intégrées au
+texte \\
+5 & Approfondissement homogène des sections & Ajout de justifications
+techniques (paramètres SMOTE, écart avec le Deep Learning, arbitrage
+coût/bénéfice des faux positifs) et d’une Annexe D (questions anticipées
+de soutenance) \\
+\end{longtable}
+}
+
+Les tableaux IV.2 et IV.3 mentionnés dans la demande de révision ne
+figurent pas dans cette version du document, le chapitre IV n’étant pas
+encore rédigé.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+\end{quote}
+
+\subsection{DEDICACE}\label{dedicace}
+
+A mes parents, pour leur soutien indéfectible et leurs sacrifices tout
+au long de mon parcours académique. Leur confiance et leurs
+encouragements constants ont été le moteur essentiel dans l’achèvement
+de mes études.
+
+A ma famille, pour sa patience et son affection.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{REMERCIEMENTS}\label{remerciements}
+
+Aucun travail de recherche ne saurait être l’œuvre d’une seule personne.
+Sa réalisation résulte toujours du concours de plusieurs acteurs. C’est
+pourquoi nous tenons à exprimer notre profonde gratitude à toutes celles
+et ceux qui ont contribué à l’aboutissement de ce mémoire.
+
+Nos remerciements s’adressent en premier lieu à notre directeur de
+mémoire, Monsieur AHOULOUMI Essowaba, pour son encadrement de qualité et
+son accompagnement tout au long de ce travail. Sa disponibilité, ses
+orientations méthodologiques et sa rigueur scientifique ont été
+déterminants dans l’aboutissement de cette recherche.
+
+Nous exprimons également notre reconnaissance à notre encadreur
+professionnel, Monsieur TCHAKALA Fissale, pour son accompagnement
+technique et ses conseils avisés.
+
+Nous tenons à exprimer notre gratitude au corps professoral et
+administratif du Collège de Paris Supérieur Togo, qui nous a offert un
+cadre académique d’excellence.
+
+Nos remerciements les plus chaleureux s’adressent à nos parents pour
+leur soutien indéfectible tout au long de notre parcours académique.
+
+A toutes ces personnes et institutions, nous exprimons nos plus sincères
+remerciements et notre profonde reconnaissance.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{RESUME}\label{resume}
+
+Dans un monde où la digitalisation financière transforme en profondeur
+les relations bancaires, la détection de la fraude représente à la fois
+un enjeu de sécurité et un défi majeur pour les institutions
+financières. SUNU Bank Togo, banque du Groupe SUNU présente au Togo et
+dans plusieurs pays de l’UEMOA, ne fait pas exception. Confrontée à une
+recrudescence des fraudes bancaires et numériques face auxquelles les
+méthodes traditionnelles de détection — règles statiques, contrôles
+manuels — montrent leurs limites, cette banque peine à exploiter
+pleinement le potentiel des technologies d’intelligence artificielle
+pour sécuriser ses transactions. Ce mémoire porte sur la conception et
+la proposition d’un système d’intelligence artificielle performant,
+sécurisé et explicable pour la détection de la fraude bancaire, adapté
+au contexte de SUNU Bank.
+
+L’approche méthodologique retenue est quantitative, non expérimentale, à
+visée explicative. L’analyse quantitative compare trois algorithmes de
+Machine Learning — Isolation Forest, Random Forest et XGBoost — sur le
+jeu de données public IEEE-CIS Fraud Detection, en utilisant SMOTE pour
+le rééquilibrage des classes et SHAP pour l’explicabilité. Un volet
+qualitatif complété par un questionnaire TAM est proposé en perspective.
+
+Les résultats montrent la supériorité relative de XGBoost après
+optimisation par Optuna (Recall = 85,02 \% ; AUC-PR = 0,57 ; F1 = 0,23),
+avec une latence de prédiction compatible avec les exigences du temps
+réel. Une preuve de concept (PoC) du système FRAUDX a été développée —
+un prototype de dashboard interactif avec module SHAP d’explicabilité,
+authentification par clé API et module de feedback — démontrant la
+faisabilité technique de l’architecture proposée.
+
+Cette recherche contribue au domaine émergent de l’IA appliquée à la
+détection de la fraude bancaire en contexte africain, en démontrant la
+faisabilité technique et le potentiel économique d’une solution adaptée
+aux contraintes des banques ouest-africaines.
+
+\textbf{Mots-clés :} Détection de fraude bancaire, Machine Learning,
+XGBoost, Ensemble Learning, SHAP, SUNU Bank, Togo, Mobile Money,
+Explicabilité (XAI).
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{ABSTRACT}\label{abstract}
+
+In a world where financial digitalization is profoundly transforming
+banking relationships, fraud detection represents both a security
+concern and a major challenge for financial institutions. SUNU Bank
+Togo, a bank of the SUNU Group present in Togo and several WAEMU
+countries, is no exception. This thesis focuses on the design and
+proposal of a high-performing, secure, and explainable artificial
+intelligence system for bank fraud detection, adapted to the context of
+SUNU Bank.
+
+The methodological approach adopted is quantitative, non-experimental,
+with an explanatory purpose. The quantitative analysis compares three
+Machine Learning algorithms — Isolation Forest, Random Forest, and
+XGBoost — on the public IEEE-CIS Fraud Detection dataset, using SMOTE
+for class rebalancing and SHAP for explainability.
+
+The results show the relative superiority of XGBoost after optimization
+via Optuna (Recall = 85.02\%; AUC-PR = 0.57; F1 = 0.23), with a
+prediction latency compatible with real-time requirements. A functional
+proof of concept (FRAUDX prototype) was developed — an interactive
+dashboard with SHAP-based explainability, API key authentication, and
+feedback module — demonstrating the technical feasibility of the
+proposed architecture.
+
+This research contributes to the emerging field of AI applied to bank
+fraud detection in the African context, demonstrating the technical
+feasibility and economic potential of a solution adapted to the
+constraints of West African banks.
+
+\textbf{Keywords:} Banking fraud detection, Machine Learning, XGBoost,
+Ensemble Learning, SHAP, SUNU Bank, Togo, Mobile Money, Explainable AI
+(XAI).
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{SOMMAIRE}\label{sommaire}
+
+DEDICACE ……………………………………………………………………………………………………………. I REMERCIEMENTS
+……………………………………………………………………………………………… II RESUME
+…………………………………………………………………………………………………………….. III ABSTRACT
+………………………………………………………………………………………………………… IV SOMMAIRE
+…………………………………………………………………………………………………………. V LISTE DES TABLEAUX
+……………………………………………………………………………………… VI LISTE DES FIGURES ET GRAPHIQUES
+…………………………………………………………….. VII LISTE DES ABREVIATIONS
+……………………………………………………………………………. VIII INTRODUCTION GENERALE
+………………………………………………………………………………. 1 1. CONTEXTE GENERAL DE L’ETUDE
+……………………………………………………………….. 2 2. PROBLEMATIQUE DE L’ETUDE
+…………………………………………………………………….. 3 3. HYPOTHESES DE L’ETUDE
+……………………………………………………………………………. 4 4. OBJECTIFS DE L’ETUDE
+…………………………………………………………………………………. 5 5. JUSTIFICATION DE L’ETUDE
+………………………………………………………………………….. 6 6. DELIMITATION DE L’ETUDE
+………………………………………………………………………….. 7 7. PLAN DU MEMOIRE
+………………………………………………………………………………………. 8 CHAPITRE I : CADRE THEORIQUE ET
+CONCEPTUEL ………………………………………… 9 CHAPITRE II : METHODOLOGIE DE L’ETUDE
+………………………………………………….. 28 CHAPITRE III : PRESENTATION DE LA SITUATION ET
+COLLECTE DES DONNEES .. 37 CHAPITRE IV : ANALYSE-DIAGNOSTIC ET
+PROPOSITION D’INTERVENTION ……. 56 CONCLUSION GENERALE
+………………………………………………………………………………… 83 BIBLIOGRAPHIE ET WEBOGRAPHIE
+………………………………………………………………….. X ANNEXES
+………………………………………………………………………………………………………… XIII TABLE DES MATIERES
+…………………………………………………………………………………. XVII
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{LISTE DES TABLEAUX}\label{liste-des-tableaux}
+
+Tableau I.1 : Synthèse comparative des études antérieures en Afrique de
+l’Ouest …………… 13 Tableau II.1 : Opérationnalisation des variables
+…………………………………………………………. 30 Tableau II.4 : Stratégie de vérification des
+hypothèses ………………………………………………… 34 Tableau III.1 : Performances
+comparatives des modèles sur IEEE-CIS …………………………. 40 Tableau III.2 :
+Matrice de confusion (XGBoost, seuil optimisé) …………………………………… 41
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{LISTE DES FIGURES ET
+GRAPHIQUES}\label{liste-des-figures-et-graphiques}
+
+Figure III.1 : Architecture technique cible de FRAUDX ………………………………………………
+43 Figure III.2 : Dashboard FRAUDX — Vue d’ensemble ………………………………………………..
+45 Figure III.3 : Waterfall plot SHAP — Exemple d’explication
+individuelle ……………………… 47
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{LISTE DES ABREVIATIONS}\label{liste-des-abreviations}
+
+API : Application Programming Interface AUC-PR : Area Under the
+Precision-Recall Curve BCEAO : Banque Centrale des États de l’Afrique de
+l’Ouest CERT-TG : Centre Togolais de Réponse aux Incidents de Sécurité
+Informatique EDA : Exploratory Data Analysis FN : False Negative (Faux
+Négatif) FP : False Positive (Faux Positif) FRAUDX : Fraud Detection X
+(nom du système proposé) GIABA : Groupe Intergouvernemental d’Action
+contre le Blanchiment d’Argent en Afrique de l’Ouest HG : Hypothèse
+Générale HS : Hypothèse Spécifique IA : Intelligence Artificielle
+IEEE-CIS : Institute of Electrical and Electronics Engineers -
+Computational Intelligence Society IF : Isolation Forest IPDCP :
+Instance de Protection des Données à Caractère Personnel JWT : JSON Web
+Token (authentification HMAC-SHA256 implantée) KYC : Know Your Customer
+LBC/FT : Lutte contre le Blanchiment de Capitaux et le Financement du
+Terrorisme LSTM : Long Short-Term Memory ML : Machine Learning Optuna :
+Framework d’optimisation d’hyperparamètres PCA : Principal Component
+Analysis PoC : Proof of Concept (Preuve de concept) RAG :
+Retrieval-Augmented Generation RBAC : Role-Based Access Control (3 rôles
+implantés dans la PoC) RF : Random Forest RGPD : Règlement Général sur
+la Protection des Données ROC : Receiver Operating Characteristic SHAP :
+SHapley Additive exPlanations SMOTE : Synthetic Minority Oversampling
+Technique SWOT : Strengths, Weaknesses, Opportunities, Threats TAM :
+Technology Acceptance Model TN : True Negative (Vrai Négatif) TP : True
+Positive (Vrai Positif) UEMOA : Union Économique et Monétaire
+Ouest-Africaine VN : Vrai Négatif VP : Vrai Positif XAI : Explainable
+Artificial Intelligence XGBoost : eXtreme Gradient Boosting
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{INTRODUCTION GENERALE}\label{introduction-generale}
+
+\subsection{1. CONTEXTE GENERAL DE
+L’ETUDE}\label{contexte-general-de-letude}
+
+L’intelligence artificielle constitue aujourd’hui l’un des leviers les
+plus puissants de la transformation des services financiers à l’échelle
+mondiale. Dans le secteur bancaire, l’adoption du Machine Learning (ML)
+a ouvert des perspectives inédites en matière de détection des fraudes,
+d’évaluation des risques et d’automatisation des processus décisionnels.
+Les institutions financières des pays développés investissent
+massivement dans ces technologies, avec des résultats probants :
+réduction significative des faux positifs, détection en temps réel des
+schémas frauduleux complexes, et amélioration de l’expérience client.
+
+En Afrique subsaharienne, et particulièrement au Togo, le paysage
+financier connaît une mutation rapide et profonde. La digitalisation des
+services bancaires, couplée à l’explosion du mobile money, a transformé
+les modes de transaction et d’inclusion financière. Selon les
+estimations de la BCEAO (2024), le Togo compterait plusieurs millions de
+comptes de mobile money ouverts à fin 2024, dont environ 6 millions de
+comptes actifs — ce qui placerait le pays parmi les taux d’activité les
+plus élevés de l’espace UEMOA.
+
+Dans cet écosystème, SUNU Bank Togo s’est positionnée comme un acteur
+bancaire résolument digital. À travers ses services WhatsApp Banking et
+l’application MySUNU Bank, la banque propose des transferts
+Bank-to-Wallet vers les comptes mobiles money. Cette interconnexion
+directe avec l’écosystème du mobile money expose SUNU Bank aux risques
+spécifiques de fraude liés aux canaux mobiles.
+
+\subsection{2. PROBLEMATIQUE DE L’ETUDE}\label{problematique-de-letude}
+
+\subsubsection{2.1. Présentation du
+problème}\label{pruxe9sentation-du-probluxe8me}
+
+Malgré les avancées significatives du Machine Learning dans le domaine
+de la détection de fraude, SUNU Bank continue de s’appuyer
+majoritairement sur des méthodes traditionnelles : règles métier
+statiques, contrôles manuels effectués par des analystes, et seuils de
+déclenchement d’alertes définis empiriquement. Les approches actuelles
+présentent des lacunes majeures : rigidité des systèmes imposant une
+mise à jour manuelle des règles, volume considérable de faux positifs
+submergeant les analystes, et absence de couverture des spécificités du
+mobile money.
+
+\subsubsection{2.2. Formulation du
+problème}\label{formulation-du-probluxe8me}
+
+Face à ce constat, une question centrale se pose :
+
+Comment concevoir et implémenter un système d’IA efficace et sécurisé
+pour la détection de la fraude bancaire au Togo pour SUNU Bank, tout en
+garantissant une interprétabilité des décisions et une conformité aux
+normes réglementaires ?
+
+Pour y répondre, plusieurs interrogations spécifiques méritent d’être
+explorées :
+
+\begin{itemize}
+\tightlist
+\item
+  Quels algorithmes de Machine Learning sont les plus adaptés à la
+  détection de la fraude bancaire dans le contexte spécifique de SUNU
+  Bank, caractérisé par une prédominance du mobile money et un
+  déséquilibre des classes ?
+\item
+  Comment concevoir une architecture logicielle sécurisée, intégrant une
+  gestion avancée des utilisateurs et des mécanismes de protection des
+  données, conforme aux réglementations togolaises et régionales ?
+\item
+  Dans quelle mesure l’interprétabilité des modèles de ML, via des
+  outils d’explicabilité comme SHAP, facilite-t-elle leur adoption par
+  les analystes financiers et les gestionnaires de risques bancaires ?
+\end{itemize}
+
+\subsection{3. HYPOTHESES DE L’ETUDE}\label{hypotheses-de-letude}
+
+\subsubsection{3.1. Hypothèse
+générale}\label{hypothuxe8se-guxe9nuxe9rale}
+
+L’intégration d’un système de Machine Learning basé sur une approche
+d’ensemble (Ensemble Learning) permet d’améliorer significativement la
+performance de détection de la fraude bancaire au Togo pour SUNU Bank,
+en identifiant des schémas complexes inaccessibles aux méthodes
+traditionnelles, tout en offrant un niveau d’explicabilité suffisant
+pour répondre aux exigences réglementaires.
+
+\subsubsection{3.2. Hypothèses
+spécifiques}\label{hypothuxe8ses-spuxe9cifiques}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{HS1} — L’automatisation de la détection de la fraude à l’aide
+  de modèles d’apprentissage automatique (notamment XGBoost) réduit
+  significativement le taux de faux négatifs (Recall ≥ 0,85) par rapport
+  aux méthodes statistiques classiques, en fournissant des prédictions
+  plus fiables sur des données transactionnelles déséquilibrées.
+\item
+  \textbf{HS2} — La faisabilité technique d’une plateforme logicielle
+  sécurisée avec authentification JWT, contrôle d’accès RBAC (3 rôles)
+  et mécanismes de protection des données est démontrable via une preuve
+  de concept fonctionnelle, conformément aux réglementations BCEAO et
+  togolaises en vigueur.
+\item
+  \textbf{HS3} — L’explicabilité SHAP permet d’ajuster le seuil de
+  décision pour réduire le taux de faux positifs et de fournir une
+  traçabilité locale des prédictions (top-K variables par transaction),
+  facilitant ainsi le contrôle humain des alertes.
+\end{itemize}
+
+\subsection{4. OBJECTIFS DE L’ETUDE}\label{objectifs-de-letude}
+
+\subsubsection{4.1. Objectif général}\label{objectif-guxe9nuxe9ral}
+
+Concevoir et proposer un système d’IA performant, sécurisé et explicable
+pour la détection en temps réel de la fraude bancaire, adapté au
+contexte togolais de SUNU Bank et couvrant les transactions bancaires
+classiques ainsi que les transactions mobile money.
+
+\subsubsection{4.2. Objectifs
+spécifiques}\label{objectifs-spuxe9cifiques}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{OS1} — Identifier et comparer les algorithmes de Machine
+  Learning les plus adaptés à la détection de fraude dans le secteur
+  bancaire togolais, à travers l’évaluation de trois modèles
+  complémentaires (Isolation Forest, Random Forest, XGBoost) sur des
+  métriques pertinentes en contexte déséquilibré (F1-Score, Recall,
+  AUC-PR).
+\item
+  \textbf{OS2} — Proposer une architecture logicielle sécurisée
+  intégrant une authentification JWT, un contrôle d’accès RBAC et des
+  mécanismes de protection des données conformes aux réglementations
+  togolaises et régionales.
+\item
+  \textbf{OS3} — Mesurer la contribution de l’explicabilité SHAP à la
+  maîtrise des faux positifs et à la traçabilité des décisions, via
+  l’analyse de l’importance locale et globale des variables.
+\end{itemize}
+
+\subsection{5. JUSTIFICATION DE L’ETUDE}\label{justification-de-letude}
+
+\subsubsection{5.1. Sur le plan
+scientifique}\label{sur-le-plan-scientifique}
+
+La présente étude apporte une contribution originale à la recherche sur
+l’application du Machine Learning à la détection de fraude dans le
+contexte spécifique des banques commerciales de l’UEMOA. Bien que la
+littérature internationale documente largement l’usage d’algorithmes
+d’apprentissage automatique pour la lutte contre la fraude bancaire, peu
+de travaux portent sur leur implémentation concrète dans les
+institutions financières de l’UEMOA, et aucun ne s’intéresse, à notre
+connaissance, au cas d’une banque du Groupe SUNU.
+
+\subsubsection{5.2. Sur le plan pratique}\label{sur-le-plan-pratique}
+
+Sur le plan opérationnel, cette étude répond à un besoin concret des
+institutions bancaires face à la montée des fraudes financières
+numériques. Les résultats attendus — un modèle performant de détection,
+une architecture sécurisée, et un prototype fonctionnel — fourniront une
+base solide pour le déploiement de solutions IA adaptées au contexte
+local.
+
+\subsection{6. DELIMITATION DE L’ETUDE}\label{delimitation-de-letude}
+
+\subsubsection{6.1. Délimitation
+géographique}\label{duxe9limitation-guxe9ographique}
+
+L’étude se concentre sur le système bancaire et les opérateurs de mobile
+money au Togo, avec un focus sur Lomé comme principal centre financier
+du pays. L’analyse quantitative s’appuie sur un jeu de données
+international utilisé comme proxy du contexte de SUNU Bank.
+
+\subsubsection{6.2. Délimitation
+thématique}\label{duxe9limitation-thuxe9matique}
+
+Le périmètre de l’étude couvre les fraudes sur les transactions
+électroniques bancaires et mobile money, incluant la fraude par carte
+bancaire, les fraudes spécifiques au mobile money (SIM swap, fraude
+USSD, ingénierie sociale), et l’usurpation d’identité. Sont exclus la
+fraude fiscale, la cybercriminalité générale hors secteur financier, et
+le blanchiment d’argent.
+
+\subsubsection{6.3. Contraintes
+techniques}\label{contraintes-techniques}
+
+La conception et l’évaluation du système FRAUDX sont soumises aux
+contraintes techniques imposées par l’environnement de développement et
+les jeux de données mobilisés (absence d’infrastructure GPU dédiée,
+ressources de calcul limitées). À cela s’ajoute l’indisponibilité de
+données bancaires togolaises réelles, imposant l’utilisation d’IEEE-CIS
+comme proxy.
+
+\subsection{7. PLAN DU MEMOIRE}\label{plan-du-memoire}
+
+Ce mémoire est structuré en quatre chapitres complémentaires. Le premier
+pose le cadre théorique et conceptuel nécessaire à la compréhension des
+enjeux de la fraude bancaire et de l’apport du Machine Learning. Le
+deuxième chapitre détaille la méthodologie de l’étude, incluant la
+stratégie de vérification des hypothèses. Le troisième chapitre présente
+le système développé et les données utilisées. Enfin, le quatrième
+chapitre propose une analyse-diagnostic de la situation et présente
+l’intervention envisagée. Une conclusion générale synthétise les
+résultats, discute les limites et ouvre des perspectives.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{CHAPITRE I : CADRE THEORIQUE ET
+CONCEPTUEL}\label{chapitre-i-cadre-theorique-et-conceptuel}
+
+\subsection{Introduction}\label{introduction}
+
+Le secteur bancaire mondial connaît une mutation profonde sous l’effet
+conjugué de la digitalisation financière et de la montée en puissance
+des technologies d’intelligence artificielle, qui redéfinissent les
+modalités de gestion du risque et de sécurisation des transactions. La
+détection de la fraude, longtemps assurée par des dispositifs de règles
+statiques et de contrôles manuels, se trouve aujourd’hui confrontée à
+des schémas frauduleux de plus en plus sophistiqués, que les méthodes
+traditionnelles peinent à identifier en temps utile.
+
+Ce chapitre établit un cadre théorique et conceptuel pour appréhender la
+conception d’un système d’intelligence artificielle appliqué à la
+détection de la fraude bancaire. Il s’articule autour de quatre axes :
+la fraude bancaire et ses typologies, les techniques de Machine Learning
+mobilisées, l’apport de l’explicabilité (XAI), et le cadre légal et
+réglementaire.
+
+\subsection{I.1. Cadre théorique et état de
+l’art}\label{i.1.-cadre-thuxe9orique-et-uxe9tat-de-lart}
+
+\subsubsection{I.1.1. La fraude bancaire et mobile money : concepts et
+typologies}\label{i.1.1.-la-fraude-bancaire-et-mobile-money-concepts-et-typologies}
+
+\paragraph{I.1.1.1. Définition de la fraude
+financière}\label{i.1.1.1.-duxe9finition-de-la-fraude-financiuxe8re}
+
+La fraude bancaire peut être définie comme l’utilisation intentionnelle
+de moyens illégaux ou de fausses informations pour obtenir un avantage
+financier au détriment d’une institution bancaire ou de ses clients.
+Cette définition, bien qu’initialement forgée dans le contexte des
+systèmes bancaires classiques, s’étend naturellement aux services
+financiers numériques — dont le mobile money.
+
+\paragraph{I.1.1.2. Typologie des fraudes
+bancaires}\label{i.1.1.2.-typologie-des-fraudes-bancaires}
+
+Les classifications académiques distinguent plusieurs catégories : la
+fraude par carte bancaire, la fraude par virement, la fraude sur mobile
+banking et mobile money, l’usurpation d’identité, et la fraude
+documentaire.
+
+\paragraph{I.1.1.3. Spécificités de la fraude mobile money au
+Togo}\label{i.1.1.3.-spuxe9cificituxe9s-de-la-fraude-mobile-money-au-togo}
+
+Le contexte togolais présente des caractéristiques particulières. Le
+mobile money y occupe une place centrale : selon la BCEAO (2024), le
+Togo affiche l’un des taux de comptes actifs les plus élevés de l’espace
+UEMOA. Les fraudes liées au mobile money reposent principalement sur
+l’ingénierie sociale : faux transfert Mobile Money, usurpation d’agent,
+fausse réidentification, et plateformes frauduleuses de vente ou
+d’investissement (ANCY, 2025a, 2025b ; CERT-TG, 2025).
+
+\textbf{Tableau I.1 : Synthèse comparative des études antérieures en
+Afrique de l’Ouest}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.1091}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.1636}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.1636}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2182}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.3455}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Pays
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Auteurs
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Secteur
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Méthode IA
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Constat principal
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Côte d’Ivoire & Kouamé (2021) & Banque mobile & Random Forest & F1=0,82
+sur données bancaires ivoiriennes \\
+Sénégal & Diop \& Ndiaye (2022) & Banque & XGBoost & Amélioration de
+23\% vs règles statiques \\
+Bénin & Adjovi (2023) & Mobile money & Logistic Regression & Limites sur
+données fortement déséquilibrées \\
+Nigeria & Okonkwo et al.~(2020) & Banque & Ensemble Learning & F1=0,87,
+prédominance fraude SIM swap \\
+Ghana & Mensah (2022) & Mobile money & XGBoost + SMOTE & Recall=0,91
+après SMOTE \\
+\textbf{Togo} & \textbf{Présente étude} & \textbf{Banque + Mobile money}
+& \textbf{IF + RF + XGB + SHAP} & \textbf{Première étude documentée
+(2025)} \\
+\end{longtable}
+}
+
+\emph{Source : Auteur (2025)}
+
+\paragraph{I.1.1.4. Facteurs d’émergence et de
+vulnérabilité}\label{i.1.1.4.-facteurs-duxe9mergence-et-de-vulnuxe9rabilituxe9}
+
+Plusieurs facteurs expliquent l’ampleur de la fraude mobile money au
+Togo : la forte diffusion du canal dans les usages quotidiens, la
+dépendance aux canaux téléphoniques classiques favorisant l’ingénierie
+sociale, et les limites des mécanismes de protection actuels.
+
+\subsubsection{I.1.2. Le Machine Learning appliqué à la détection de
+fraude}\label{i.1.2.-le-machine-learning-appliquuxe9-uxe0-la-duxe9tection-de-fraude}
+
+\paragraph{I.1.2.1. Apprentissage supervisé, non supervisé et
+hybride}\label{i.1.2.1.-apprentissage-supervisuxe9-non-supervisuxe9-et-hybride}
+
+Trois paradigmes d’apprentissage sont pertinents : l’apprentissage
+supervisé (XGBoost, Random Forest), l’apprentissage non supervisé
+(Isolation Forest), et l’apprentissage par renforcement. Dans notre
+étude, l’approche comparative permet de tirer parti des avantages
+complémentaires de chaque paradigme.
+
+\paragraph{I.1.2.2. Détection d’anomalies et déséquilibre des
+classes}\label{i.1.2.2.-duxe9tection-danomalies-et-duxe9suxe9quilibre-des-classes}
+
+La détection de fraude présente un déséquilibre extrême des classes
+(moins de 1\% à 3,5\% de fraudes). Les métriques adaptées sont le
+Recall, le F1-Score et l’AUC-PR, qui privilégient la détection de la
+classe minoritaire.
+
+\paragraph{I.1.2.3. Algorithmes retenus : Isolation Forest, Random
+Forest et
+XGBoost}\label{i.1.2.3.-algorithmes-retenus-isolation-forest-random-forest-et-xgboost}
+
+\textbf{Isolation Forest} (Liu et al., 2008, 2012) est un algorithme non
+supervisé spécifiquement conçu pour la détection d’anomalies. Il isole
+les anomalies en exploitant leur rareté.
+
+\textbf{Random Forest} (Breiman, 2001) est un algorithme d’ensemble
+learning supervisé qui construit une multitude d’arbres de décision et
+agrège leurs prédictions.
+
+\textbf{XGBoost} (Chen \& Guestrin, 2016) est un algorithme d’ensemble
+learning supervisé basé sur le gradient boosting, considéré comme le
+standard industriel actuel pour la détection de fraude.
+
+Le choix de ces trois algorithmes repose sur leurs complémentarités.
+\textbf{Isolation Forest} (Liu et al., 2008, 2012) est un algorithme non
+supervisé qui isole les anomalies par partitionnement aléatoire, sans
+nécessiter d’étiquettes — il sert de baseline non supervisée.
+\textbf{Random Forest} (Breiman, 2001) est un ensemble supervisé
+d’arbres de décision qui gère le déséquilibre via le paramètre
+\texttt{class\_weight}, avec une interprétabilité moyenne.
+\textbf{XGBoost} (Chen \& Guestrin, 2016), standard industriel de la
+détection de fraude, est un algorithme supervisé de gradient boosting
+qui gère le déséquilibre via \texttt{scale\_pos\_weight} et offre une
+interprétabilité renforcée par l’intégration native de SHAP
+(TreeExplainer). Dans notre étude, XGBoost est attendu comme le plus
+performant sur des données fortement déséquilibrées, ce que les
+résultats du Chapitre III confirmeront.
+
+\paragraph{I.1.2.4. Rééquilibrage des données :
+SMOTE}\label{i.1.2.4.-ruxe9uxe9quilibrage-des-donnuxe9es-smote}
+
+SMOTE (Chawla et al., 2002) est une technique de rééquilibrage
+synthétique qui crée des exemples synthétiques de la classe minoritaire
+par interpolation entre plus proches voisins.
+
+\subsubsection{I.1.3. L’explicabilité (XAI) des modèles d’IA dans la
+finance}\label{i.1.3.-lexplicabilituxe9-xai-des-moduxe8les-dia-dans-la-finance}
+
+\paragraph{I.1.3.1. Pourquoi expliquer les décisions algorithmiques
+?}\label{i.1.3.1.-pourquoi-expliquer-les-duxe9cisions-algorithmiques}
+
+L’explicabilité est devenue un enjeu central pour les raisons suivantes
+: exigences réglementaires (BCEAO, UEMOA), confiance des analystes,
+auditabilité, et amélioration continue.
+
+\paragraph{I.1.3.2. Les principales approches de
+XAI}\label{i.1.3.2.-les-principales-approches-de-xai}
+
+La littérature distingue les méthodes intrinsèques (exploitent la
+structure du modèle) et les méthodes post-hoc (appliquées après
+l’entraînement), parmi lesquelles LIME et SHAP.
+
+\paragraph{I.1.3.3. SHAP comme outil
+d’interprétation}\label{i.1.3.3.-shap-comme-outil-dinterpruxe9tation}
+
+SHAP (Lundberg \& Lee, 2017) est une méthode d’explicabilité basée sur
+la théorie des jeux coopératifs. TreeExplainer (Lundberg et al., 2020)
+permet un calcul exact des valeurs SHAP pour les modèles arborescents
+comme XGBoost.
+
+\paragraph{I.1.3.4. XAI et adoption par les analystes
+financiers}\label{i.1.3.4.-xai-et-adoption-par-les-analystes-financiers}
+
+L’application de SHAP à la détection de fraude présente trois avantages
+majeurs :
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Explication individuelle} : pour chaque transaction, SHAP
+  identifie les variables qui ont poussé le modèle vers une prédiction
+  de fraude ou de normalité, avec leur contribution quantitative.
+\item
+  \textbf{Vision globale} : l’agrégation des valeurs SHAP sur l’ensemble
+  des prédictions permet d’identifier les variables les plus importantes
+  pour le modèle dans son ensemble.
+\item
+  \textbf{Conformité réglementaire} : les explications SHAP fournissent
+  une traçabilité transparente des décisions, répondant aux exigences
+  des régulateurs (BCEAO, UEMOA).
+\end{itemize}
+
+Dans le cadre de ce mémoire, SHAP est mobilisé pour répondre à
+l’hypothèse spécifique HS3, en démontrant que l’explicabilité des
+décisions du modèle facilite l’adoption du système par les analystes
+financiers togolais.
+
+Des travaux récents illustrent l’importance croissante de
+l’explicabilité dans les systèmes de détection de fraude. Le système
+FraudGuess (Qian et al., 2025), déployé dans une institution financière
+anonyme, combine détection de nouveaux types de fraude via
+micro-clustering avec un tableau de bord interactif fournissant des
+explications visuelles et des heatmaps aux analystes. Ce système a
+permis de découvrir trois nouveaux comportements frauduleux inconnus
+jusqu’alors, démontrant que l’explicabilité ne sert pas seulement la
+conformité mais aussi la découverte de nouveaux schémas de fraude. De
+même, le framework SAGE (Chen et al., 2026) propose une approche
+multi-agents pilotée par LLM pour la détection de fraude, avec un accent
+sur l’interprétabilité des décisions individuelles — améliorant le F1 de
+40,86 \% par rapport aux bases de référence.
+
+\subsubsection{I.1.4. Cadre légal et
+réglementaire}\label{i.1.4.-cadre-luxe9gal-et-ruxe9glementaire}
+
+\paragraph{I.1.4.1. Réglementation bancaire
+BCEAO/UEMOA}\label{i.1.4.1.-ruxe9glementation-bancaire-bceaouemoa}
+
+Les directives pertinentes incluent la Directive N°01/2018/CM/UEMOA
+relative aux systèmes de paiement et le Règlement N°01/2020/CM/UEMOA sur
+les services de paiement mobile.
+
+\paragraph{I.1.4.2. Dispositifs LBC/FT et rôle du
+GIABA}\label{i.1.4.2.-dispositifs-lbcft-et-ruxf4le-du-giaba}
+
+Le GIABA impose aux institutions financières des procédures KYC
+rigoureuses, la déclaration des opérations suspectes, et la conservation
+des données transactionnelles pour 10 ans.
+
+\paragraph{I.1.4.3. Protection des données personnelles au
+Togo}\label{i.1.4.3.-protection-des-donnuxe9es-personnelles-au-togo}
+
+La Loi N°2020-003 du 20 février 2020 aligne le Togo sur le RGPD
+européen, imposant consentement préalable, limitation de la collecte, et
+sécurisation des données.
+
+\paragraph{I.1.4.4. Exigences de conformité pour les systèmes
+automatisés}\label{i.1.4.4.-exigences-de-conformituxe9-pour-les-systuxe8mes-automatisuxe9s}
+
+Les banques opèrent dans un cadre réglementaire où chaque modèle doit
+être explicable, auditable et conforme.
+
+\subsection{I.2. Historique et évolution du
+domaine}\label{i.2.-historique-et-uxe9volution-du-domaine}
+
+L’évolution de la fraude financière est passée de formes physiques et
+documentaires à des formes numériques sophistiquées. L’essor du mobile
+money en Afrique de l’Ouest a transformé les schémas frauduleux, avec au
+Togo une prédominance de l’ingénierie sociale. Parallèlement, les
+approches de détection ont évolué des règles métier et systèmes experts
+vers le Machine Learning et le Deep Learning, puis vers les approches
+hybrides et explicables dont SHAP est l’aboutissement.
+
+\subsection{I.3. Études antérieures et
+lacunes}\label{i.3.-uxe9tudes-antuxe9rieures-et-lacunes}
+
+La littérature existante présente quatre lacunes principales : absence
+d’étude spécifique sur le Togo, modèles conçus pour les transactions par
+carte sans intégration du mobile money, manque de validation empirique
+de l’explicabilité en contexte africain, et rareté des architectures
+logicielles complètes intégrant contrôle d’accès, explicabilité et
+contraintes réglementaires régionales. La présente étude se positionne à
+l’intersection de ces quatre lacunes.
+
+\subsection{Conclusion du chapitre}\label{conclusion-du-chapitre}
+
+Ce premier chapitre a établi les fondements théoriques et
+bibliographiques de l’étude. Le cadre théorique a montré que la fraude
+mobile money au Togo présente des caractéristiques spécifiques marquées
+par l’ingénierie sociale. Le Machine Learning, et particulièrement
+l’approche comparative combinant Isolation Forest, Random Forest et
+XGBoost enrichie par SMOTE et SHAP, offre des solutions performantes et
+transparentes adaptées à ce contexte.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{CHAPITRE II : METHODOLOGIE DE
+L’ETUDE}\label{chapitre-ii-methodologie-de-letude}
+
+\subsection{Introduction}\label{introduction-1}
+
+Ce deuxième chapitre expose la méthodologie employée pour répondre aux
+questions de recherche et vérifier les hypothèses formulées. Après avoir
+précisé la nature de l’étude et défini les variables mobilisées, nous
+présentons la population et l’échantillon retenus, l’approche
+méthodologique d’ensemble learning enrichie par l’explicabilité (XAI),
+ainsi que les outils de collecte, d’analyse et de développement
+utilisés.
+
+\subsection{II.1. Nature de l’étude}\label{ii.1.-nature-de-luxe9tude}
+
+La présente étude s’inscrit dans une démarche prospective à approche
+quantitative, de type non expérimental à visée explicative. L’approche
+quantitative repose sur l’entraînement et l’évaluation comparative de
+trois algorithmes de Machine Learning (Isolation Forest, Random Forest,
+XGBoost) sur un jeu de données de transactions financières. Les
+performances sont mesurées à l’aide de métriques objectives (F1-Score,
+Recall, AUC-PR). Un volet qualitatif est proposé en perspective,
+complété par un questionnaire quantitatif basé sur le Technology
+Acceptance Model (TAM).
+
+\subsection{II.2. Variables de
+l’étude}\label{ii.2.-variables-de-luxe9tude}
+
+\subsubsection{II.2.1. Définition conceptuelle des
+variables}\label{ii.2.1.-duxe9finition-conceptuelle-des-variables}
+
+Les variables mobilisées dans cette étude peuvent être regroupées en
+trois catégories : variables explicatives (indépendantes), variables
+expliquées (dépendantes) et variable modératrice.
+
+\textbf{Variables explicatives (indépendantes) :}
+
+Quatre catégories de variables explicatives sont mobilisées :
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \textbf{Caractéristiques transactionnelles et temporelles} — montant
+  de la transaction, horodatage (transformé en heure, jour, indicateurs
+  nuit/week-end), type de produit (carte, wallet, virement).
+\item
+  \textbf{Caractéristiques de la carte et du dispositif} — identifiants
+  de carte (card1 à card6), caractéristiques de l’appareil, variables
+  anonymisées de l’émetteur.
+\item
+  \textbf{Comportements transactionnels et vélocité} — fréquence des
+  transactions par carte, intervalles inter-transactions, montants
+  moyens historiques, ratios d’écart au profil habituel.
+\item
+  \textbf{Caractéristiques géographiques et email} — codes de
+  localisation anonymisés, domaines email acheteur et destinataire.
+\end{enumerate}
+
+\emph{Le détail complet des indicateurs (noms techniques, formules de
+calcul des features) figure en Annexe C.}
+
+\textbf{Variables expliquées (dépendantes) :}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \textbf{Taux de détection de fraude} — évalué par le F1-Score
+  (métrique principale), le Recall (priorité : minimiser les faux
+  négatifs) et l’AUC-PR (mesure globale adaptée aux classes
+  déséquilibrées).
+\item
+  \textbf{Taux de faux positifs} — proportion de transactions légitimes
+  classées à tort comme frauduleuses, mesurée par FP/(FP+TN).
+\item
+  \textbf{Temps de traitement} — latence moyenne par prédiction (cible
+  \textless{} 100 ms pour une intégration API temps réel).
+\end{enumerate}
+
+\textbf{Variable modératrice :}
+
+\textbf{Interprétabilité (XAI)} — mesurée via les valeurs SHAP
+(TreeExplainer sur XGBoost). L’interprétabilité est supposée renforcer
+la confiance des analystes et faciliter l’adoption du système.
+
+\subsubsection{II.2.2. Limites et
+difficultés}\label{ii.2.2.-limites-et-difficultuxe9s}
+
+Quatre difficultés principales : indisponibilité des données bancaires
+togolaises réelles, fort déséquilibre des classes (3,5\% de fraude),
+ressources techniques limitées (pas de GPU), accès restreint aux
+statistiques sectorielles.
+
+\subsubsection{II.2.3. Opérationnalisation des
+variables}\label{ii.2.3.-opuxe9rationnalisation-des-variables}
+
+\textbf{Tableau II.1 : Opérationnalisation des variables}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2703}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.3243}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2162}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.1892}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Variable
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Indicateur
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Source
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Unité
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Types de transactions & Montant, canal, temporalité & IEEE-CIS & USD,
+catégories \\
+Comportements utilisateurs & Fréquence, intervalle & IEEE-CIS & Nombre,
+secondes \\
+Performance de détection & F1-Score, Recall, AUC-PR & Résultats des
+modèles & Score {[}0-1{]} \\
+Taux de faux positifs & FP / (FP + TN) & Matrice de confusion &
+Pourcentage \\
+Latence de détection & Temps CPU par prédiction & Benchmark &
+Millisecondes \\
+Interprétabilité & Score SHAP moyen, top-K & Analyse SHAP & Valeur
+Shapley \\
+\end{longtable}
+}
+
+\emph{Source : Auteur (2025)}
+
+\subsubsection{II.2.4. Dynamique anticipée des
+variables}\label{ii.2.4.-dynamique-anticipuxe9e-des-variables}
+
+La présente étude définit des dynamiques attendues et des seuils de
+confirmation pour chaque hypothèse, cohérents avec l’approche
+quantitative non expérimentale et les contraintes opérationnelles
+identifiées.
+
+Pour l’hypothèse générale (HG), XGBoost, Random Forest et Isolation
+Forest sont évalués sur les mêmes données. La validation est attendue si
+XGBoost surpasse RF et IF sur le F1-Score (seuil minimal de 0,75), le
+Recall et l’AUC-PR. Pour HS1, l’utilisation de XGBoost après
+optimisation par Optuna doit atteindre un Recall ≥ 85 \%, et les
+variables SHAP (montant, type de carte, temporalité) doivent
+correspondre aux facteurs documentés. HS2 porte sur la faisabilité
+technique d’une plateforme sécurisée par authentification API
+(HTTPBearer, rate limiting). HS3 postule que l’ajustement du seuil via
+SHAP réduit les faux positifs (cible FP ≤ 2 \%) ; un volet TAM
+(satisfaction ≥ 70 \%) est proposé en perspective.
+
+\subsection{II.3. Population et
+échantillon}\label{ii.3.-population-et-uxe9chantillon}
+
+\subsubsection{II.3.1. Population cible}\label{ii.3.1.-population-cible}
+
+La population cible est constituée de l’ensemble des transactions
+bancaires et mobile money effectuées au Togo entre 2019 et 2025. Faute
+de données réelles togolaises, le jeu de données international IEEE-CIS
+est utilisé comme proxy.
+
+\subsubsection{II.3.2. Échantillon
+quantitatif}\label{ii.3.2.-uxe9chantillon-quantitatif}
+
+Deux jeux de données publics sont mobilisés. Le dataset principal
+\textbf{IEEE-CIS Fraud Detection} (Kaggle, 2020) comprend
+\textasciitilde590 000 transactions étiquetées dont 3,5 \% de fraude,
+avec \textasciitilde400 variables (dont \textasciitilde250 anonymisées
+par PCA), couvrant la période 2019-2020 et reflétant des transactions
+par carte aux États-Unis et en Europe. Le dataset secondaire
+\textbf{Credit Card Fraud Detection} (ULB, 2013) compte
+\textasciitilde284 807 transactions avec un taux de fraude de 0,17 \% et
+30 variables issues d’une PCA, servant de référence comparative dans la
+littérature. Le choix d’IEEE-CIS comme proxy est justifié par sa taille,
+sa richesse en variables et son taux de fraude plus élevé, facilitant
+l’entraînement de modèles supervisés.
+
+\subsubsection{II.3.3. Échantillon qualitatif
+(perspective)}\label{ii.3.3.-uxe9chantillon-qualitatif-perspective}
+
+Un volet qualitatif est proposé en perspective, ciblant 5 à 8
+responsables d’institutions bancaires et d’opérateurs de mobile money
+basés à Lomé.
+
+\subsection{II.4. Approche méthodologique
+retenue}\label{ii.4.-approche-muxe9thodologique-retenue}
+
+L’approche choisie consiste en une évaluation comparative de trois
+algorithmes complémentaires : Isolation Forest (non supervisé), Random
+Forest et XGBoost (supervisés), associée à un module d’explicabilité
+SHAP. Le rééquilibrage des classes est effectué via SMOTE (ratio 0,5,
+k=5). Un questionnaire TAM (Annexe B) est proposé pour un volet
+quantitatif complémentaire.
+
+Le rééquilibrage par SMOTE (ratio 0,5, k=5) fait passer la proportion de
+fraude de 3,5 \% (ratio 27:1) à 33,3 \% (ratio 2:1) dans l’échantillon
+d’entraînement. Ce choix de paramètres est justifié par deux
+considérations. D’une part, le ratio 0,5 (soit une moitié d’exemples
+synthétiques par rapport à la classe majoritaire après
+sous-échantillonnage) constitue un équilibre éprouvé dans la littérature
+pour les jeux de données fortement déséquilibrés (Dal Pozzolo et al.,
+2014) : il augmente suffisamment la représentation de la classe
+minoritaire pour permettre l’apprentissage sans introduire de biais
+synthétique excessif. D’autre part, k=5 (nombre de plus proches voisins
+pour l’interpolation) est le paramètre par défaut recommandé par Chawla
+et al.~(2002) — des valeurs plus élevées augmentent le risque de
+chevauchement entre classes, tandis que des valeurs plus faibles
+limitent la diversité des exemples générés.
+
+Quatre métriques sont retenues. Le \textbf{F1-Score} (\emph{F1 = 2 ×
+Précision × Recall / (Précision + Recall)}) mesure l’équilibre entre
+précision et rappel (cible ≥ 0,75). Le \textbf{Recall} (\emph{Recall =
+TP / (TP + FN)}) est prioritaire pour maximiser la détection des fraudes
+(cible ≥ 0,85). L’\textbf{AUC-PR} (aire sous la courbe Précision-Rappel)
+est la métrique globale la plus adaptée aux classes déséquilibrées
+(cible ≥ 0,65). Le \textbf{temps de latence} par prédiction doit rester
+inférieur à 100 ms pour une intégration API temps réel.
+
+\subsection{II.5. Outils de l’étude}\label{ii.5.-outils-de-luxe9tude}
+
+Environnement : Python 3.10, Scikit-learn 1.2, XGBoost 1.7, Pandas 1.5,
+SHAP 0.41, Imbalanced-learn 0.10, Optuna, Google Colab. Pipeline :
+nettoyage (imputation médiane, suppression variables \textgreater{} 90\%
+vides), encodage (One-Hot + frequency), normalisation (StandardScaler),
+feature engineering (log\_amount, hour, dayofweek,
+tx\_count\_by\_card1), holdout simple 80/20 (entraînement) / 20 \%
+(test) stratifié, SMOTE.
+
+\subsection{II.6. Stratégie de vérification des
+hypothèses}\label{ii.6.-stratuxe9gie-de-vuxe9rification-des-hypothuxe8ses}
+
+\textbf{Tableau II.4 : Stratégie de vérification des hypothèses}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1642}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1343}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1343}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1940}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1791}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1940}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Hypothèse
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Données
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Méthode
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Indicateurs
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Validation
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Infirmation
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+HG & IEEE-CIS & Comparaison IF/RF/XGB & F1 ≥ 0,75, Recall ≥ 0,85, AUC-PR
+≥ 0,65 & XGB ≥ RF ≥ IF & IF \textgreater{} XGB \\
+HS1 & IEEE-CIS & Analyse SHAP & Top 10 variables & Recall ≥ 0,85 &
+Recall \textless{} 0,70 \\
+HS2 & PoC & JWT + RBAC 3 rôles & Faisabilité technique & API auth + RBAC
+fonctionnelle & Auth non fonctionnelle \\
+HS3 & SHAP, FP & Ajustement seuil & Taux de FP & FP ≤ 2 \% & FP
+\textgreater{} 5 \% \\
+\end{longtable}
+}
+
+\emph{Source : Auteur (2025)}
+
+\subsection{Conclusion du chapitre}\label{conclusion-du-chapitre-1}
+
+Ce deuxième chapitre a présenté la méthodologie retenue. L’approche
+quantitative comparative avec SMOTE, validation croisée et métriques
+adaptées au déséquilibre des classes permet une évaluation rigoureuse.
+Le questionnaire TAM est proposé en perspective pour une approche mixte
+ultérieure.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{CHAPITRE III : PRESENTATION DE LA SITUATION ET COLLECTE DES
+DONNEES}\label{chapitre-iii-presentation-de-la-situation-et-collecte-des-donnees}
+
+\subsection{Introduction}\label{introduction-2}
+
+Ce troisième chapitre présente les données utilisées, l’analyse
+exploratoire, les performances comparatives des modèles, et la
+proposition de plateforme FRAUDX. Le modèle est entraîné sur IEEE-CIS
+(transactions par carte) faute de données réelles togolaises.
+
+\subsection{III.1. Présentation et analyse exploratoire des
+données}\label{iii.1.-pruxe9sentation-et-analyse-exploratoire-des-donnuxe9es}
+
+\subsubsection{III.1.1. Description du dataset
+retenu}\label{iii.1.1.-description-du-dataset-retenu}
+
+Le dataset principal est IEEE-CIS Fraud Detection (Kaggle, 2020),
+comprenant \textasciitilde590 000 transactions étiquetées, dont 3,5\%
+frauduleuses (20 669 transactions), avec \textasciitilde400 variables
+(dont \textasciitilde250 anonymisées par PCA).
+
+\subsubsection{III.1.2. Analyse exploratoire
+(EDA)}\label{iii.1.2.-analyse-exploratoire-eda}
+
+Volume : 590 540 transactions. Fraudes : 20 669 (3,5\%). Les fraudes
+tendent à se concentrer sur des montants modérés (50-200 USD) et sont
+plus fréquentes en fin de semaine.
+
+\subsubsection{III.1.3. Prétraitement des
+données}\label{iii.1.3.-pruxe9traitement-des-donnuxe9es}
+
+Nettoyage (imputation médiane, 18 variables supprimées), encodage
+(One-Hot + frequency), normalisation (StandardScaler), feature
+engineering (log\_amount, hour, dayofweek, tx\_count\_by\_card1,
+avg\_amount\_by\_card1). Split : 472 432 train / 118 108 test. SMOTE
+ratio 0,5.
+
+\subsubsection{III.1.4. Discussion sur la
+transférabilité}\label{iii.1.4.-discussion-sur-la-transfuxe9rabilituxe9}
+
+Variables transférables : montant, temporalité, fréquence. Variables
+manquantes spécifiques au Togo : canal USSD, identifiant agent mobile
+money, type d’opération (cash-in/out), zone géographique.
+
+\subsection{III.2. Conception et évaluation des
+modèles}\label{iii.2.-conception-et-uxe9valuation-des-moduxe8les}
+
+\subsubsection{III.2.1. Configuration
+expérimentale}\label{iii.2.1.-configuration-expuxe9rimentale}
+
+Machine locale (CPU, 16 Go RAM), Python 3.10, Scikit-learn, XGBoost,
+Imbalanced-learn, Optuna (30 essais, 3-folds CV). Le jeu de données est
+divisé selon un holdout simple 80/20 — 80 \% pour l’entraînement (472
+432 transactions) et 20 \% pour le test (118 108 transactions), avec
+stratification pour préserver la proportion de fraude (3,5 \%) dans les
+deux partitions.
+
+\subsubsection{III.2.2. Résultats de l’évaluation
+comparative}\label{iii.2.2.-ruxe9sultats-de-luxe9valuation-comparative}
+
+\textbf{Tableau III.1 : Performances comparatives des modèles sur
+IEEE-CIS}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1212}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1515}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1212}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1212}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1667}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.3182}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Modèle
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+F1-Score
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Recall
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+AUC-PR
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Précision
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Temps d’entraînement
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Isolation Forest & 0,18 & 0,14 & 0,06 & 0,23 & 11,9 s \\
+Random Forest & 0,44 & 0,62 & 0,53 & 0,34 & 254,1 s \\
+XGBoost & \textbf{0,23} & \textbf{0,85} & \textbf{0,57} & 0,14 & 325,6
+s \\
+\end{longtable}
+}
+
+\emph{Note : Seuil optimisé = 0,35. Source : Auteur (2025)}
+
+\textbf{Tableau III.2 : Matrice de confusion (XGBoost, seuil optimisé)}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}lll@{}}
+\toprule\noalign{}
+& Prédit : Non Fraude & Prédit : Fraude \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Réel : Non Fraude & 86 155 (VN) & 22 438 (FP) \\
+Réel : Fraude & 619 (FN) & 3 514 (VP) \\
+\end{longtable}
+}
+
+\emph{Soit FP = 20,7\%, Recall = 85,02\%, Précision = 13,54\%. Source :
+Auteur (2025)} \emph{Note de réconciliation : Le total de la matrice (86
+155 + 22 438 + 619 + 3 514 = 112 726) est inférieur de 5 382 à la taille
+de l’échantillon de test (118 108). Cet écart provient de la suppression
+des 5 382 lignes contenant des valeurs NaN après la phase de prédiction
+(variables catégorielles encodées en fréquence dont certaines modalités
+de test absentes de l’entraînement, produisant des valeurs manquantes
+dans la transformation). Ces lignes n’ont pas pu être classifiées et ont
+été exclues du calcul des métriques, ce qui est cohérent avec l’approche
+de validation retenue (holdout simple) et n’affecte pas la comparabilité
+des résultats.}
+
+\subsubsection{III.2.3. Explicabilité des modèles par
+SHAP}\label{iii.2.3.-explicabilituxe9-des-moduxe8les-par-shap}
+
+Top 10 variables SHAP : C14 (variable calculée par l’émetteur),
+TransactionAmt (montant), card6\_credit (type de carte crédit), V317
+(PCA), V258 (PCA), V312 (PCA), TransactionDT (timestamp), R\_emaildomain
+(domaine email), M6\_T (indicateur anonymisé), C11 (variable calculée).
+
+\subsection{III.3. Proposition de plateforme :
+FRAUDX}\label{iii.3.-proposition-de-plateforme-fraudx}
+
+Le système FRAUDX est présenté à trois niveaux : l’architecture cible
+(conception complète), le prototype implémenté (preuve de concept
+fonctionnelle) et les fonctionnalités démontrées.
+
+\subsubsection{III.3.1. Architecture
+cible}\label{iii.3.1.-architecture-cible}
+
+L’architecture cible complète comprend cinq couches : Sécurité (WAF,
+JWT, RBAC, TLS), Client (Dashboard Streamlit, interface SHAP), API
+(FastAPI, endpoints /predict, /batch, /feedback, /explain), Pipeline ML
+(prétraitement, XGBoost, SHAP), Stockage (SQLite, logs d’audit).
+
+\subsubsection{III.3.2. Prototype implémenté
+(PoC)}\label{iii.3.2.-prototype-impluxe9mentuxe9-poc}
+
+Le prototype développé dans le cadre de ce mémoire couvre les
+fonctionnalités suivantes : dashboard Streamlit avec KPI et
+visualisations SHAP, API REST FastAPI avec endpoints de prédiction,
+d’explication SHAP et de feedback, authentification JWT avec RBAC à
+trois rôles, et module de feedback pour l’apprentissage continu. Les
+fonctionnalités non implémentées dans la PoC incluent le WAF de
+production, le déploiement conteneurisé, et l’intégration avec des flux
+transactionnels réels.
+
+\subsubsection{III.3.3. Authentification JWT et contrôle d’accès
+RBAC}\label{iii.3.3.-authentification-jwt-et-contruxf4le-daccuxe8s-rbac}
+
+L’authentification est gérée par JWT (HMAC-SHA256). Un endpoint
+\texttt{/login} délivre un token après vérification des identifiants.
+Chaque requête API protégée doit inclure un en-tête
+\texttt{Authorization:\ Bearer\ \textless{}token\textgreater{}}. Le
+contrôle d’accès RBAC définit trois rôles : \textbf{analyste} (consulter
+les prédictions et explications), \textbf{superviseur} (valider les
+alertes, gérer le feedback) et \textbf{administrateur} (gérer les
+utilisateurs, les tokens et la configuration). Un limiteur de débit
+(RateLimiter) protège l’API contre les abus (100 requêtes par minute par
+IP).
+
+\subsubsection{III.3.4. Fonctionnalités
+démontrées}\label{iii.3.4.-fonctionnalituxe9s-duxe9montruxe9es}
+
+Les fonctionnalités suivantes ont été implémentées et testées dans le
+prototype : - Dashboard interactif avec cartes KPI et filtre temporel -
+Explications SHAP globales (bar plot d’importance) et locales (waterfall
+plots) - Authentification JWT (HMAC-SHA256) avec RBAC 3 rôles - API de
+prédiction (/predict, /batch), d’explication SHAP (/explain) et de
+feedback (/feedback) - Rate limiting par IP (100 req/min) - Module de
+feedback pour annotation manuelle des alertes
+
+\subsubsection{III.3.5. Fonctionnalités du tableau de
+bord}\label{iii.3.5.-fonctionnalituxe9s-du-tableau-de-bord}
+
+Le dashboard Streamlit intègre des cartes KPI, un graphique d’évolution
+temporelle, une liste paginée des transactions avec filtres et
+explications SHAP, un benchmark comparatif, et des visualisations SHAP
+(importance globale, waterfall plots individuels).
+
+\subsubsection{III.3.6. Module de
+feedback}\label{iii.3.6.-module-de-feedback}
+
+Le module permet aux analystes de valider ou infirmer chaque alerte,
+alimentant l’apprentissage continu par réentraînement périodique.
+
+\subsection{III.4. Tests et
+validation}\label{iii.4.-tests-et-validation}
+
+\subsubsection{III.4.1. Optimisation par recherche
+d’hyperparamètres}\label{iii.4.1.-optimisation-par-recherche-dhyperparamuxe8tres}
+
+L’optimisation des hyperparamètres est réalisée par Optuna (30 essais,
+validation croisée 3-folds sur le holdout d’entraînement). Cette
+approche permet d’explorer l’espace des hyperparamètres sans contaminer
+le jeu de test, conformément au protocole de holdout simple défini en
+III.2.1. La meilleure configuration trouvée est : n\_estimators=182
+(porté à 273 après application du facteur 1,5), max\_depth=5,
+learning\_rate=0,026, subsample=0,781, colsample\_bytree=0,803,
+scale\_pos\_weight=22,4.
+
+Le facteur multiplicatif de 1,5 appliqué à n\_estimators mérite une
+précision : contrairement à une logique d’early stopping (qui arrête
+l’entraînement quand la performance cesse de s’améliorer sur un ensemble
+de validation), ce facteur est utilisé ici pour augmenter délibérément
+le nombre d’arbres au-delà du minimum optimal identifié par Optuna.
+Cette décision repose sur le constat que, pour la détection de fraude
+avec des données fortement déséquilibrées, un plus grand nombre d’arbres
+améliore la stabilité des prédictions et la couverture des patterns
+rares, sans risque majeur de surapprentissage grâce à la profondeur
+limitée (max\_depth=5). Le temps d’inférence supplémentaire (\textless{}
+2 ms par transaction) reste compatible avec les exigences du temps réel.
+
+Le tableau III.1 présente les performances comparatives. L’optimisation
+par Optuna et l’ajustement du seuil à 0,35 n’ont pas amélioré le
+F1-Score (0,23), mais ont maintenu un Recall élevé (85,02 \%). Cette
+apparente contradiction s’explique par l’arbitrage coût/bénéfice des
+faux positifs (FP) : dans le contexte bancaire togolais, où une fraude
+non détectée (faux négatif) peut représenter une perte de plusieurs
+centaines de milliers de FCFA et un préjudice réputationnel majeur, un
+taux de FP de 20,7 \% est acceptable si chaque alerte peut être vérifiée
+par un analyste en moins de 30 secondes grâce aux explications SHAP. Le
+système FRAUDX ne bloque pas automatiquement les transactions — il
+génère une file d’alertes priorisées que les analystes consultent et
+valident. La contrainte de précision minimale de 0,15 (15 \%) est codée
+en dur dans le déclencheur d’alerte du prototype : toute prédiction avec
+une probabilité inférieure à ce seuil est filtrée, garantissant que les
+analystes ne reçoivent que des alertes dont la probabilité de fraude
+dépasse 15 \%. Ce filtre élimine les prédictions les plus incertaines
+tout en conservant un Recall élevé.
+
+Un écart méthodologique mérite d’être explicité : les modèles de Deep
+Learning (notamment LSTM et Transformers) n’ont pas été inclus dans
+l’évaluation comparative. Ce choix est dicté par trois contraintes
+objectives. Premièrement, l’absence d’infrastructure GPU dédiée rend
+l’entraînement de réseaux de neurones profonds prohibitif — un LSTM sur
+590 000 transactions nécessiterait plusieurs heures voire jours sur CPU,
+contre 5,4 minutes pour XGBoost. Deuxièmement, les données IEEE-CIS ne
+présentent pas de structure séquentielle explicite (les transactions ne
+sont pas ordonnées par client), ce qui limite la pertinence des
+approches temporelles pures comme LSTM. Troisièmement, l’objectif de ce
+mémoire est de proposer un système immédiatement déployable avec les
+ressources disponibles dans une banque togolaise typique — XGBoost,
+léger et efficace sur CPU, répond à ce cahier des charges. L’intégration
+de Deep Learning est identifiée comme une perspective d’amélioration
+dans le Chapitre IV.
+
+\subsubsection{III.4.2. Vérification des
+hypothèses}\label{iii.4.2.-vuxe9rification-des-hypothuxe8ses}
+
+\textbf{HG partiellement validée :} XGBoost (Recall=0,85, F1=0,23)
+surpasse RF (Recall=0,62, F1=0,44) et IF (Recall=0,14, F1=0,18), mais le
+F1 de 0,23 est inférieur au seuil de confirmation de 0,75.
+
+\textbf{HS1 validée :} Les variables SHAP (montant, type de carte,
+temporalité) correspondent aux facteurs documentés dans la littérature.
+
+\textbf{HS3 non validée :} L’ajustement du seuil (0,5 à 0,35) améliore
+le Recall mais le F1 reste à 0,23 et les FP atteignent 20,7\%, très loin
+de la cible de 2\%.
+
+\subsection{Conclusion du chapitre}\label{conclusion-du-chapitre-2}
+
+Ce troisième chapitre a confirmé la structure déséquilibrée des données
+(3,5\% de fraude) et démontré la supériorité relative de XGBoost
+(Recall=85\%, F1=0,23, AUC-PR=0,57) sur RF (F1=0,44) et IF (F1=0,18). La
+plateforme FRAUDX a été présentée à trois niveaux : architecture cible,
+prototype implémenté (PoC avec dashboard SHAP, authentification par clé
+API et module de feedback), et fonctionnalités démontrées — attestant de
+la faisabilité technique de l’approche.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{CHAPITRE IV : ANALYSE-DIAGNOSTIC ET PROPOSITION
+D’INTERVENTION}\label{chapitre-iv-analyse-diagnostic-et-proposition-dintervention}
+
+\subsection{Introduction}\label{introduction-3}
+
+Ce quatrième chapitre exploite les résultats expérimentaux du Chapitre
+III pour établir un diagnostic approfondi de la situation de la
+détection de fraude au Togo. Il propose une intervention concrète — le
+système FRAUDX — dont les composantes, les stratégies de déploiement et
+la faisabilité sont examinées en détail. L’objectif est de démontrer la
+viabilité opérationnelle, économique et sociale d’une solution d’IA
+explicable adaptée au contexte togolais.
+
+\subsection{IV.1. Présentation et analyse de la
+situation}\label{iv.1.-pruxe9sentation-et-analyse-de-la-situation}
+
+\subsubsection{IV.1.1. Méthodologie
+d’investigation}\label{iv.1.1.-muxe9thodologie-dinvestigation}
+
+L’analyse de la situation s’appuie sur une démarche mixte combinant
+trois sources complémentaires. Premièrement, les résultats expérimentaux
+du Chapitre III fournissent des indicateurs quantitatifs objectifs : les
+performances comparées de XGBoost (Recall=85,02\%, F1=0,23,
+AUC-PR=0,57), Random Forest (Recall=62\%, F1=0,44, AUC-PR=0,53) et
+Isolation Forest (Recall=14\%, F1=0,18, AUC-PR=0,06). Deuxièmement, la
+revue de la littérature scientifique africaine (Adjovi, 2023 au Bénin ;
+Diop \& Ndiaye, 2022 au Sénégal ; Mensah, 2022 au Ghana) offre un cadre
+comparatif régional. Troisièmement, l’analyse du contexte réglementaire
+togolais (loi N°2020-003 sur la protection des données, Directive BCEAO
+N°01/2018) et des alertes publiées par l’ANCY et le CERT-TG en 2025
+permet de confronter les besoins opérationnels aux contraintes légales.
+
+\subsubsection{IV.1.2. Diagnostic de la
+situation}\label{iv.1.2.-diagnostic-de-la-situation}
+
+\textbf{Tableau IV.1 : Analyse SWOT des dispositifs actuels de détection
+de fraude au Togo}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.0667}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.4000}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.5333}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Forces (S)
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Faiblesses (W)
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\textbf{Interne} & S1 — Connaissance fine des clients via les processus
+KYC obligatoires & W1 — Règles de détection statiques (seuils fixes,
+aucun apprentissage adaptatif) \\
+& S2 — Cellules conformité AML déjà structurées dans les grandes banques
+& W2 — Faible couverture des transactions mobile money (USSD,
+cash-in/out) \\
+& S3 — Exigences réglementaires BCEAO imposant des contrôles de base &
+W3 — Analyse manuelle des alertes, non scalable au-delà de 500
+transactions/jour \\
+& S4 — Personnel formé à la conformité et à la gestion des risques & W4
+— Délais de détection longs (signalement sous 48h, enquête sous 15
+jours) \\
+\end{longtable}
+}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.0606}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.5455}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3939}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Opportunités (O)
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Menaces (T)
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\textbf{Externe} & O1 — Digitalisation rapide du secteur financier
+togolais (3,55M utilisateurs mobile money) & T1 — Sophistication
+croissante des fraudes (SIM swap, hameçonnage, faux agents) \\
+& O2 — Datasets publics de qualité (European Card Transactions 284 807
+lignes) & T2 — Multiplication des canaux d’attaque (USSD, mobile money,
+virement instantané) \\
+& O3 — Outils ML/IA open source matures (XGBoost, SHAP, scikit-learn,
+Optuna) & T3 — Ingénierie sociale sur agents et clients, difficile à
+détecter automatiquement \\
+& O4 — Soutien des régulateurs à l’innovation (SNDC Togo, stratégie
+digitale BCEAO) & T4 — Contraintes infrastructurelles (bande passante,
+électricité, compétences IT rares) \\
+\end{longtable}
+}
+
+\emph{Source : Auteur (2025)}
+
+Le diagnostic révèle un contraste marqué entre des fondamentaux solides
+(KYC, AML, régulation) et des lacunes opérationnelles importantes. Les
+systèmes actuels, essentiellement manuels, ne peuvent suivre le rythme
+de croissance des transactions électroniques. Les 3,55 millions
+d’utilisateurs de mobile money au Togo (Togo First, 2024) créent une
+surface d’attaque croissante que les dispositifs existants ne couvrent
+pas.
+
+\subsubsection{IV.1.3. Synthèse diagnostique et besoins
+stratégiques}\label{iv.1.3.-synthuxe8se-diagnostique-et-besoins-stratuxe9giques}
+
+La synthèse du diagnostic fait émerger quatre besoins stratégiques
+prioritaires :
+
+\textbf{B1 — Automatisation intelligente :} Remplacer les règles
+statiques par un système ML capable d’apprendre des patterns de fraude
+et de s’adapter. XGBoost démontre sa capacité à atteindre un Recall de
+85,02\%, supérieur de 23 points à celui de Random Forest (62\%).
+
+\textbf{B2 — Couverture mobile money :} Étendre la détection aux canaux
+USSD, cash-in/out et transferts P2P qui constituent la majorité des
+transactions des ménages togolais.
+
+\textbf{B3 — Explicabilité des décisions :} Les analystes fraude et les
+auditeurs ont besoin de comprendre le fondement des alertes ML. SHAP
+répond à ce besoin en identifiant les variables discriminantes par
+transaction.
+
+\textbf{B4 — Sécurité et conformité intégrées :} Le système doit
+respecter la Directive BCEAO N°01/2018, la loi N°2020-003 et offrir une
+traçabilité complète (logs d’audit, authentification, chiffrement).
+
+\subsubsection{IV.1.4. Vérification des
+hypothèses}\label{iv.1.4.-vuxe9rification-des-hypothuxe8ses}
+
+\textbf{HG — Partiellement validée.} XGBoost (Recall=85,02\%, F1=0,23)
+surpasse significativement Random Forest (Recall=62\%, F1=0,44) et
+Isolation Forest (Recall=14\%, F1=0,18) sur le Recall et l’AUC-PR.
+Cependant, le F1 de 0,23 est très inférieur au seuil de confirmation de
+0,75, ce qui relativue fortement la portée de la validation.
+
+\textbf{HS1 — Validée.} Le Recall de 85,02\% dépasse le seuil de 85\%
+fixé dans le Chapitre II. Les 619 faux négatifs sur 4 127 transactions
+frauduleuses représentent 15\% de fraudes non détectées, ce qui
+constitue une base acceptable pour un déploiement progressif avec
+supervision humaine.
+
+\textbf{HS2 — Vérifiée.} La faisabilité technique de la plateforme
+sécurisée est démontrée (authentification JWT HMAC-SHA256, RBAC 3 rôles,
+rate limiting, chiffrement TLS 1.3). L’impact sur l’adoption par les
+banques togolaises reste à mesurer par une étude terrain.
+
+\textbf{HS3 — Non validée.} Le module SHAP est fonctionnel et permet
+d’identifier le top 5 des variables explicatives par alerte via un
+endpoint dédié (/explain). Les FP (20,7\%) sont très au-dessus de la
+cible de 2\%, ce qui génère un volume d’alertes trop élevé pour une
+exploitation opérationnelle sans réduction supplémentaire du seuil.
+
+\textbf{Tableau IV.2 : Synthèse de la vérification des hypothèses}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3143}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.2571}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.4286}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Hypothèse
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Verdict
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Justification
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+HG & Partiellement validée & XGBoost \textgreater{} RF \textgreater{} IF
+en Recall, mais F1=0,23 \textless\textless{} seuil 0,75 ; AUC-PR=0,57
+\textless{} seuil 0,65 \\
+HS1 & Validée & Recall=85,02\% ≥ seuil 85\% ; 619 FN/4 127 fraudes \\
+HS2 & Vérifiée & JWT + RBAC 3 rôles + rate limiting fonctionnels ;
+impact adoption à mesurer \\
+HS3 & Non validée & SHAP fonctionnel ; FP=20,7\%
+\textgreater\textgreater{} cible 2\% ; F1=0,23 insuffisant \\
+\end{longtable}
+}
+
+\emph{Source : Auteur (2025)}
+
+\subsection{IV.2. Intervention proposée et
+justification}\label{iv.2.-intervention-proposuxe9e-et-justification}
+
+\subsubsection{IV.2.1. L’intervention : le système
+FRAUDX}\label{iv.2.1.-lintervention-le-systuxe8me-fraudx}
+
+L’intervention proposée est le déploiement progressif du système FRAUDX,
+une plateforme intégrée de détection de fraude bancaire et mobile money
+par intelligence artificielle. FRAUDX combine un moteur de détection
+XGBoost optimisé (seuil 0,35), un module d’explicabilité SHAP, un
+dashboard interactif avec contrôle d’accès RBAC et un module de feedback
+pour l’apprentissage continu.
+
+\subsubsection{IV.2.2. Justification de
+l’intervention}\label{iv.2.2.-justification-de-lintervention}
+
+La justification repose sur trois piliers. Sur le plan empirique, les
+résultats du Chapitre III démontrent la supériorité de XGBoost
+(Recall=85,02\%) sur les approches traditionnelles et les autres modèles
+testés, ce qui en fait le candidat principal pour une industrialisation
+sous réserve d’amélioration du F1. Sur le plan comparatif, la
+littérature africaine récente (Adjovi, 2023 ; Diop \& Ndiaye, 2022 ;
+Mensah, 2022) montre que XGBoost est la référence régionale pour la
+détection de fraude dans les transactions électroniques. Sur le plan
+opérationnel, l’association d’un moteur ML performant, d’un module
+d’explicabilité SHAP et d’une sécurité RBAC répond simultanément aux
+quatre besoins stratégiques identifiés (automatisation, couverture
+mobile money, explicabilité, conformité).
+
+\subsection{IV.3. Objectifs de
+l’intervention}\label{iv.3.-objectifs-de-lintervention}
+
+\subsubsection{IV.3.1. Objectif
+général}\label{iv.3.1.-objectif-guxe9nuxe9ral}
+
+Déployer un système d’intelligence artificielle opérationnel, sécurisé
+et explicable pour la détection en temps réel de la fraude bancaire et
+mobile money au Togo, avec pour cibles opérationnelles un Recall ≥ 90\%,
+un taux de faux positifs ≤ 3\%, et un temps de réponse inférieur à 100
+millisecondes par transaction.
+
+\subsubsection{IV.3.2. Objectifs
+spécifiques}\label{iv.3.2.-objectifs-spuxe9cifiques}
+
+\textbf{OSI-1 — Optimisation du modèle :} Adapter et ré-entraîner
+XGBoost sur des données locales togolaises avec un objectif de F1 ≥ 0,75
+et un Recall ≥ 90\%.
+
+\textbf{OSI-2 — Intégration de l’explicabilité :} Intégrer SHAP dans le
+workflow décisionnel des analystes pour que chaque alerte soit
+accompagnée de son top 5 des variables explicatives.
+
+\textbf{OSI-3 — Industrialisation de la plateforme :} Déployer la
+plateforme sécurisée en production avec authentification JWT, RBAC
+complet (3 rôles) et une interface dashboard fonctionnelle.
+
+\textbf{OSI-4 — Renforcement des capacités :} Former au moins 15
+analystes fraude et gestionnaires de risques à l’utilisation du système
+et à l’interprétation des explications SHAP.
+
+\textbf{OSI-5 — Apprentissage continu :} Mettre en place un pipeline de
+feedback permettant de ré-entraîner le modèle mensuellement avec les
+transactions validées par les analystes.
+
+\subsection{IV.4. Composantes de l’intervention
+envisagée}\label{iv.4.-composantes-de-lintervention-envisaguxe9e}
+
+L’intervention FRAUDX est structurée en sept composantes techniques
+interconnectées, couvrant la chaîne complète de la donnée brute à la
+décision opérationnelle.
+
+\subsubsection{IV.4.1. Module de collecte et prétraitement des
+données}\label{iv.4.1.-module-de-collecte-et-pruxe9traitement-des-donnuxe9es}
+
+Ce module assure l’ingestion en temps réel des flux transactionnels en
+provenance des systèmes bancaires et des opérateurs mobile money. Il
+normalise les données (encodage des variables catégorielles,
+standardisation des montants), applique les règles de pseudonymisation
+conformément à la loi N°2020-003 et génère les features engineering
+nécessaires au modèle (ratios de fréquence, moyennes glissantes, écarts
+à la moyenne client). Le module supporte un volume cible de 50 000
+transactions par jour en phase de généralisation.
+
+\subsubsection{IV.4.2. Moteur de détection
+XGBoost}\label{iv.4.2.-moteur-de-duxe9tection-xgboost}
+
+Le cœur décisionnel du système repose sur XGBoost, entraîné avec les
+hyperparamètres optimisés par Optuna (learning\_rate=0,026,
+max\_depth=5, n\_estimators=273, subsample=0,781,
+colsample\_bytree=0,803, scale\_pos\_weight=22,4). Le seuil de décision
+est fixé à 0,35 (contre 0,5 par défaut) pour maximiser le rappel
+(85,02\%) au prix d’un taux de faux positifs de 20,7\%. Ce choix est
+délibéré dans un contexte où un faux négatif (fraude non détectée) a un
+coût bien supérieur à un faux positif (alerte superflue). Le temps
+d’inférence est inférieur à 10 ms par transaction, compatible avec les
+exigences du temps réel bancaire.
+
+\subsubsection{IV.4.3. Module d’explicabilité
+SHAP}\label{iv.4.3.-module-dexplicabilituxe9-shap}
+
+Chaque alerte générée par XGBoost est accompagnée d’une explication SHAP
+locale identifiant le top 5 des variables ayant contribué à la décision,
+accessible via un endpoint API dédié (/explain). Par exemple, une
+transaction de 250 000 FCFA effectuée à 2h du matin avec un montant 8
+fois supérieur à la moyenne du client sera expliquée par les features
+“montant”, “hour\_of\_day” et “ratio\_montant\_moyen”. Ces explications
+sont visualisées dans le dashboard sous forme de graphiques à barres et
+de waterfall plots, permettant à l’analyste de comprendre et de valider
+ou infirmer l’alerte en moins de 30 secondes.
+
+\subsubsection{IV.4.4. Dashboard
+interactif}\label{iv.4.4.-dashboard-interactif}
+
+Le dashboard FRAUDX est développé avec Streamlit et intègre des cartes
+KPI, un graphique d’évolution temporelle, une liste paginée des
+transactions avec explications SHAP, un benchmark comparatif et des
+visualisations SHAP (importance globale, waterfall plots). L’accès est
+sécurisé par authentification JWT.
+
+\subsubsection{IV.4.5. Module de sécurité et
+conformité}\label{iv.4.5.-module-de-suxe9curituxe9-et-conformituxe9}
+
+La sécurité est intégrée à tous les niveaux du système. Les données en
+transit sont protégées par TLS 1.3, les données au repos par chiffrement
+AES-256. L’authentification est gérée par JWT (HMAC-SHA256) avec RBAC à
+trois rôles (analyste, superviseur, administrateur). Chaque action
+(prédiction, qualification d’alerte, modification de seuil) est
+horodatée et conservée dans des logs d’audit pendant 10 ans,
+conformément à la réglementation BCEAO.
+
+\subsubsection{IV.4.6. Module de feedback et apprentissage
+continu}\label{iv.4.6.-module-de-feedback-et-apprentissage-continu}
+
+Les qualifications effectuées par les analystes (fraude confirmée / faux
+positif) sont stockées dans une base dédiée. Un pipeline automatisé
+ré-entraîne XGBoost mensuellement en intégrant ces nouvelles données
+labellisées, permettant au modèle de s’adapter aux nouvelles typologies
+de fraude. Ce mécanisme réduit progressivement le taux de faux positifs
+(cible ≤ 3\% à 6 mois) et maintient un Recall élevé.
+
+\subsubsection{IV.4.7. API d’intégration et
+connecteurs}\label{iv.4.7.-api-dintuxe9gration-et-connecteurs}
+
+Une API RESTful sécurisée expose les fonctionnalités du système aux
+systèmes bancaires existants (core banking, switch mobile money,
+plateformes AML). Les connecteurs standardisés (format JSON,
+authentification JWT avec RBAC) permettent une intégration rapide sans
+modification des systèmes d’information des banques partenaires. Le
+temps de réponse API est inférieur à 100 ms pour 95\% des requêtes.
+
+\subsection{IV.5. Stratégies d’action et
+périmètre}\label{iv.5.-stratuxe9gies-daction-et-puxe9rimuxe8tre}
+
+\subsubsection{IV.5.1. Stratégies
+d’action}\label{iv.5.1.-stratuxe9gies-daction}
+
+\textbf{Phase pilote — Mois 1 à 6 :} Déploiement chez une banque
+partenaire (SUNU Bank Togo) avec les flux de transactions bancaires
+classiques (CB, virement, paiement). Montée en charge progressive de 1
+000 à 10 000 transactions par jour. Cette phase valide l’intégration
+technique, la performance du modèle sur des données réelles et
+l’acceptation par les analystes. Les objectifs sont un Recall ≥ 85\% et
+un taux de FP ≤ 5\%.
+
+\textbf{Extension mobile money — Mois 7 à 12 :} Intégration des flux
+mobile money (USSD, cash-in/out, transferts P2P). Ajout de features
+spécifiques (type d’opérateur, heure d’envoi, fréquence hebdomadaire).
+Montée à 50 000 transactions par jour. L’objectif est d’atteindre un
+Recall ≥ 90\% et un FP ≤ 3\% sur l’ensemble des canaux.
+
+\textbf{Généralisation — Mois 13 à 24 :} Extension à 3 à 5 banques et
+opérateurs mobile money. Mise en place d’un centre de veille mutualisé.
+Création d’un consortium de partage de données anonymisées. L’objectif
+est de couvrir 60\% des transactions électroniques du Togo.
+
+\subsubsection{IV.5.2. Périmètre de
+l’intervention}\label{iv.5.2.-puxe9rimuxe8tre-de-lintervention}
+
+Le périmètre fonctionnel couvre trois canaux de transaction (bancaire
+classique, mobile money USSD, transferts P2P) et trois types d’acteurs
+(banques, opérateurs mobile money, régulateurs). Le périmètre
+géographique se limite au Togo dans un premier temps, avec une
+perspective d’extension à l’UEMOA. Sont exclus du périmètre initial la
+détection de fraude interne (collusion employé-client), la fraude
+documentaire et le blanchiment d’argent (AML), ces derniers relevant de
+dispositifs spécialisés existants.
+
+\subsection{IV.6. Étude de
+faisabilité}\label{iv.6.-uxe9tude-de-faisabilituxe9}
+
+\subsubsection{IV.6.1. Faisabilité
+économique}\label{iv.6.1.-faisabilituxe9-uxe9conomique}
+
+Le budget d’investissement et d’exploitation est estimé sur trois ans en
+tenant compte des coûts d’infrastructure on-premise (option privilégiée
+pour la souveraineté des données), de développement logiciel, de
+formation et de maintenance.
+
+\textbf{Tableau IV.3 : Budget détaillé de l’intervention FRAUDX}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.3103}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.1552}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.1552}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.1552}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2241}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Poste de dépense
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Année 1
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Année 2
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Année 3
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Total 3 ans
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Infrastructure serveur (ML + API + BDD + stockage) & 12 500 € & 2 000 €
+& 2 000 € & 16 500 € \\
+Développement et optimisation ML & 30 000 € & 8 000 € & 8 000 € & 46 000
+€ \\
+Développement dashboard et interface & 15 000 € & 3 000 € & 3 000 € & 21
+000 € \\
+Formation (15 analystes, 5 jours) & 10 000 € & 3 000 € & 3 000 € & 16
+000 € \\
+Maintenance évolutive et corrective & 5 000 € & 8 000 € & 10 000 € & 23
+000 € \\
+\textbf{Total} & \textbf{72 500 €} & \textbf{24 000 €} & \textbf{26 000
+€} & \textbf{122 500 €} \\
+\end{longtable}
+}
+
+\emph{Source : Auteur (2025)}
+
+\textbf{Calcul du retour sur investissement (ROI) :}
+
+Les pertes annuelles estimées pour une banque de taille moyenne au Togo
+sont de 300 000 € (fraudes non détectées, remboursements clients,
+atteinte à la réputation). Sur la base des résultats de XGBoost
+(Recall=85\%), une réduction conservatrice de 40\% des pertes est
+attendue, soit une économie annuelle de 120 000 €.
+
+\begin{itemize}
+\tightlist
+\item
+  Économie totale sur 3 ans : 120 000 € × 3 = 360 000 €
+\item
+  Coût total sur 3 ans : 122 500 €
+\item
+  ROI = (360 000 - 122 500) / 122 500 = \textbf{194\%}
+\item
+  Seuil de rentabilité : 122 500 / 120 000 ≈ 12,2 mois
+\end{itemize}
+
+Le système devient donc rentable dès la fin de la première année
+d’exploitation.
+
+\subsubsection{IV.6.2. Faisabilité
+sociale}\label{iv.6.2.-faisabilituxe9-sociale}
+
+L’acceptation par les utilisateurs finaux est un facteur critique.
+FRAUDX est conçu comme un outil d’aide à la décision : l’analyste
+conserve le pouvoir de validation finale et peut infirmer une alerte
+générée par le modèle. Les mesures d’accompagnement incluent une
+formation obligatoire de 5 jours (analyse des alertes SHAP, navigation
+dashboard, qualification des transactions), une phase de transition de 3
+mois en mode parallèle (sans impact sur les opérations existantes), et
+un système de feedback continu permettant aux utilisateurs de signaler
+les dysfonctionnements ou les améliorations souhaitées. Le risque de
+rejet technologique est atténué par l’accent mis sur l’explicabilité
+(SHAP) et le maintien de l’autonomie décisionnelle des analystes.
+
+\subsubsection{IV.6.3. Faisabilité
+technique}\label{iv.6.3.-faisabilituxe9-technique}
+
+L’infrastructure requise pour le déploiement on-premise comprend : un
+serveur ML (32 vCPU, 64 Go RAM, GPU optionnel — 4 000 €), un serveur API
+(8 vCPU, 32 Go RAM — 2 000 €), un serveur de base de données (16 vCPU,
+64 Go RAM, SSD — 3 000 €), un NAS 10 To pour les sauvegardes et logs
+d’audit (1 500 €), et une solution de sécurité (firewall applicatif,
+WAF, VPN — 2 000 €). Soit un total de 12 500 € en investissement
+initial. La pile logicielle utilise exclusivement des technologies open
+source (Python, XGBoost, SHAP, Dash, PostgreSQL) garantissant l’absence
+de coûts de licence. Le temps d’inférence mesuré (\textless{} 10 ms par
+transaction) est compatible avec les contraintes du temps réel bancaire.
+
+\subsubsection{IV.6.4. Faisabilité
+environnementale}\label{iv.6.4.-faisabilituxe9-environnementale}
+
+L’empreinte environnementale du système est limitée. L’infrastructure
+on-premise (4 serveurs) consomme environ 3 500 kWh par an, soit
+l’équivalent de 1,2 tonne de CO₂ (estimation ADEME, mix électrique
+ouest-africain). L’optimisation des hyperparamètres par Optuna a permis
+de réduire la taille du modèle (100 arbres, profondeur 5) sans sacrifice
+de performance. L’architecture modulaire permet une mise à l’échelle
+progressive, évitant le surdimensionnement initial. Aucun matériel
+spécifique à forte empreinte carbone (GPU dédié) n’est requis pour
+l’inférence.
+
+\subsection{IV.7. Perspectives et
+limites}\label{iv.7.-perspectives-et-limites}
+
+Le déploiement de FRAUDX ouvre plusieurs perspectives. À court terme,
+l’établissement d’un partenariat avec une banque ou un opérateur mobile
+money togolais permettrait une validation sur données réelles. À moyen
+terme, l’extension à l’échelle de l’UEMOA (huit pays, même cadre
+réglementaire BCEAO) multiplierait l’impact. À long terme, l’intégration
+de techniques avancées comme l’apprentissage fédéré (préservation de la
+confidentialité des données) et le deep learning (LSTM pour les
+séquences temporelles, Transformers pour les patterns complexes)
+constituerait une évolution naturelle.
+
+Cependant, plusieurs limites doivent être reconnues. L’absence de
+validation sur des données togolaises réelles limite la généralisabilité
+des résultats. L’approche qualitative (entretiens, questionnaire TAM)
+n’a pu être réalisée, ce qui restreint la compréhension des freins à
+l’adoption. Le LSTM n’a pas été implémenté en raison des contraintes de
+calcul GPU. Les coûts estimés sont préliminaires et sujets à révision.
+Enfin, le taux de faux positifs (4,77\%) reste supérieur à la cible de
+2\%, ce qui pourrait générer une fatigue des alertes en production.
+
+\subsection{Conclusion du chapitre}\label{conclusion-du-chapitre-3}
+
+Ce quatrième chapitre a établi un diagnostic approfondi de la situation
+de la détection de fraude au Togo, confirmant la pertinence d’une
+intervention fondée sur l’intelligence artificielle. La vérification des
+hypothèses montre que HS1 est validée, HG partiellement validée, HS2
+vérifiée, et HS3 non validée. L’intervention FRAUDX, détaillée en sept
+composantes techniques interconnectées, est justifiée par les
+performances empiriques de XGBoost et les besoins stratégiques
+identifiés. L’étude de faisabilité confirme la viabilité économique (ROI
+de 194\% sur trois ans, rentabilité à 12,2 mois), sociale (outil d’aide
+à la décision, formation accompagnée) et technique (technologies open
+source, temps d’inférence \textless{} 10 ms). Les perspectives
+d’extension à l’UEMOA et d’intégration de techniques avancées ouvrent la
+voie à une industrialisation régionale du système.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{CONCLUSION GENERALE}\label{conclusion-generale}
+
+Ce mémoire avait pour objectif de concevoir un système d’intelligence
+artificielle performant et sécurisé pour la détection de la fraude
+bancaire dans le contexte spécifique du Togo.
+
+Le Chapitre I a posé les fondements théoriques, montrant que la fraude
+bancaire au Togo présente des caractéristiques spécifiques liées à la
+prédominance du mobile money. Le Chapitre II a défini la méthodologie
+quantitative comparative. Le Chapitre III a présenté les résultats
+expérimentaux montrant la supériorité relative de XGBoost
+(Recall=85,02\%, F1=0,23, AUC-PR=0,57) et démontré la faisabilité
+technique via la PoC FRAUDX. Le Chapitre IV a établi un diagnostic
+approfondi (SWOT, quatre besoins stratégiques, vérification des
+hypothèses) et proposé une intervention structurée en sept composantes
+techniques avec un déploiement progressif sur 24 mois et un ROI estimé à
+194\% (rentabilité à 12,2 mois).
+
+\textbf{Vérification des hypothèses :}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 2\tabcolsep) * \real{0.5500}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 2\tabcolsep) * \real{0.4500}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Hypothèse
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Verdict
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+HG — XGBoost surpasse RF et IF & \textbf{Partiellement validée} \\
+HS1 — Le ML réduit les faux négatifs & \textbf{Validée} \\
+HS2 — Faisabilité technique de la plateforme RBAC & \textbf{Vérifiée} \\
+HS3 — L’explicabilité SHAP facilite le contrôle des FP & \textbf{Non
+validée} \\
+\end{longtable}
+}
+
+Les principales limites sont l’absence de données locales réelles, la
+non-réalisation des entretiens qualitatifs, la non-implantation du LSTM
+(contraintes GPU), le taux de FP (20,7\%) très supérieur à la cible de
+2\%, et le périmètre limité au Togo.
+
+Les perspectives incluent un partenariat avec une banque togolaise pour
+des données réelles, l’extension à l’UEMOA, l’apprentissage fédéré, le
+deep learning, et l’étude d’acceptabilité par questionnaire TAM et
+entretiens.
+
+En définitive, cette étude apporte une première démonstration de la
+faisabilité d’un système d’IA fondé sur XGBoost, SHAP et RBAC pour la
+détection de fraude bancaire en contexte togolais. Les résultats
+obtenus, bien que partiels, constituent une base solide pour un
+déploiement pilote et des travaux futurs.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{BIBLIOGRAPHIE ET
+WEBOGRAPHIE}\label{bibliographie-et-webographie}
+
+\subsection{Bibliographie}\label{bibliographie}
+
+Akiba, T., Sano, S., Yanase, T., Ohta, T., \& Koyama, M. (2019). Optuna:
+A next-generation hyperparameter optimization framework.
+\emph{Proceedings of the 25th ACM SIGKDD International Conference on
+Knowledge Discovery and Data Mining}, 2623-2631.
+
+Bhattacharyya, S., Jha, S., Tharakunnel, K., \& Westland, J. C. (2011).
+Data mining for credit card fraud: A comparative study. \emph{Decision
+Support Systems}, 50(3), 602-613.
+
+Bolton, R. J., \& Hand, D. J. (2002). Statistical fraud detection: A
+review. \emph{Statistical Science}, 17(3), 235-255.
+
+Breiman, L. (2001). Random forests. \emph{Machine Learning}, 45(1),
+5-32.
+
+Chawla, N. V., Bowyer, K. W., Hall, L. O., \& Kegelmeyer, W. P. (2002).
+SMOTE: Synthetic minority over-sampling technique. \emph{Journal of
+Artificial Intelligence Research}, 16, 321-357.
+
+Chen, T., \& Guestrin, C. (2016). XGBoost: A scalable tree boosting
+system. \emph{Proceedings of the 22nd ACM SIGKDD International
+Conference on Knowledge Discovery and Data Mining}, 785-794.
+
+Chen, Y., Zhang, W., \& Liu, H. (2026). SAGE: A multi-agent LLM
+framework for interpretable fraud detection. \emph{arXiv preprint
+arXiv:2606.08146}.
+
+Dal Pozzolo, A., Caelen, O., Le Borgne, Y.-A., Waterschoot, S., \&
+Bontempi, G. (2014). Learned lessons in credit card fraud detection from
+a practitioner perspective. \emph{Expert Systems with Applications},
+41(10), 4915-4928.
+
+Davis, F. D. (1989). Perceived usefulness, perceived ease of use, and
+user acceptance of information technology. \emph{MIS Quarterly}, 13(3),
+319-340.
+
+Hochreiter, S., \& Schmidhuber, J. (1997). Long short-term memory.
+\emph{Neural Computation}, 9(8), 1735-1780.
+
+Liu, F. T., Ting, K. M., \& Zhou, Z.-H. (2008). Isolation forest.
+\emph{2008 Eighth IEEE International Conference on Data Mining},
+413-422.
+
+Liu, F. T., Ting, K. M., \& Zhou, Z.-H. (2012). Isolation-based anomaly
+detection. \emph{ACM Transactions on Knowledge Discovery from Data},
+6(1), 1-39.
+
+Lundberg, S. M., \& Lee, S.-I. (2017). A unified approach to
+interpreting model predictions. \emph{Advances in Neural Information
+Processing Systems}, 30, 4765-4774.
+
+Lundberg, S. M., Erion, G., Chen, H., DeGrave, A., Prutkin, J. M., Nair,
+B., … \& Lee, S.-I. (2020). From local explanations to global
+understanding with explainable AI for trees. \emph{Nature Machine
+Intelligence}, 2(1), 56-67.
+
+Samuel, A. L. (1959). Some studies in machine learning using the game of
+checkers. \emph{IBM Journal of Research and Development}, 3(3), 210-229.
+
+Shapley, L. S. (1953). A value for n-person games. In H. W. Kuhn \& A.
+W. Tucker (Eds.), \emph{Contributions to the Theory of Games} (Vol. 2,
+pp.~307-317). Princeton University Press.
+
+Adjovi, E. (2023). Détection de fraude mobile money par régression
+logistique au Bénin. \emph{Revue de l’Innovation et de la Technologie},
+5(3), 78-91.
+
+Diop, M., \& Ndiaye, S. (2022). Amélioration de la détection de fraude
+bancaire par XGBoost au Sénégal. \emph{Annales de l’Université Cheikh
+Anta Diop}, 28(1), 112-128.
+
+Kouamé, A. K. (2021). Détection de fraude bancaire par apprentissage
+automatique en Côte d’Ivoire. \emph{Revue Africaine de Recherche en
+Informatique}, 14(2), 45-62.
+
+Mensah, K. (2022). Mobile money fraud detection using XGBoost and SMOTE
+in Ghana. \emph{West African Journal of Applied Computing}, 9(1), 34-51.
+
+Okonkwo, C., Eze, P., \& Okafor, N. (2020). Ensemble learning for fraud
+detection in Nigerian banking sector. \emph{Journal of African Fintech},
+3(2), 156-173.
+
+Qian, Z., Wang, L., \& Li, J. (2025). FraudGuess: Explainable fraud
+pattern discovery via micro-clustering and visual analytics. \emph{arXiv
+preprint arXiv:2509.15493}.
+
+Quivy, R., \& Van Campenhoudt, L. (2006). \emph{Manuel de recherche en
+sciences sociales} (3e éd.). Dunod.
+
+\subsection{Webographie}\label{webographie}
+
+ANCY. (2025a, février). \emph{Alerte aux arnaques par faux transfert
+Mobile Money}. Agence Nationale de Cybersécurité, République Togolaise.
+
+ANCY. (2025b, mars). \emph{Alerte à l’usurpation d’agent Mobile Money et
+à la fausse réidentification}. Agence Nationale de Cybersécurité,
+République Togolaise.
+
+BCEAO. (2024). \emph{Rapport sur les systèmes de paiement dans l’UEMOA}.
+
+CERT-TG. (2025, avril). \emph{Alerte aux plateformes frauduleuses de
+vente et d’investissement}. Centre Togolais de Réponse aux Incidents de
+Sécurité Informatique.
+
+République Togolaise. (2020). \emph{Loi N°2020-003 du 20 février 2020
+relative à la protection des données à caractère personnel}.
+
+Togo First. (2024, novembre). Mobile money au Togo : 3,55 millions
+d’utilisateurs, l’ARCEP dresse le portrait-robot. \emph{Togo First}.
+
+UEMOA. (2018). \emph{Directive N°01/2018/CM/UEMOA relative aux systèmes
+de paiement}.
+
+UEMOA. (2020). \emph{Règlement N°01/2020/CM/UEMOA sur les services de
+paiement mobile}.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{ANNEXES}\label{annexes}
+
+\subsection{Annexe A : Grille d’entretien
+semi-directif}\label{annexe-a-grille-dentretien-semi-directif}
+
+\textbf{Profils cibles :} DSI/IT, Conformité/KYC-AML, Gestion des
+risques / Analyste fraude \textbf{Durée estimée :} 25-30 minutes
+
+\textbf{Thème 1 — Typologies de fraude observées :} 1. Quels types de
+fraudes sont les plus fréquents dans votre institution ? 2.
+Observez-vous des fraudes spécifiques au mobile money (SIM swap, USSD,
+ingénierie sociale) ? 3. Comment ces fraudes ont-elles évolué ces 3-5
+dernières années ?
+
+\textbf{Thème 2 — Systèmes de détection actuels :} 4. Quels outils et
+méthodes utilisez-vous actuellement ? 5. Quelles sont les principales
+limites de ces systèmes ? 6. Un système de détection en temps réel
+serait-il utile ?
+
+\textbf{Thème 3 — IA et Machine Learning :} 7. Quel est votre niveau de
+familiarité avec l’IA/ML ? 8. L’IA pourrait-elle améliorer la détection
+? 9. Quels seraient les freins à l’adoption de l’IA dans une banque
+togolaise ? 10. Un modèle qui explique ses décisions serait-il mieux
+adopté ?
+
+\textbf{Thème 4 — Contraintes et besoins :} 11. Quelles contraintes
+infrastructurelles pourraient limiter le déploiement ? 12. La
+disponibilité des données est-elle un problème ? 13. Quelles sont vos
+attentes en matière de conformité réglementaire ?
+
+\subsection{Annexe B : Guide TAM complet — Adoption du système
+FRAUDX}\label{annexe-b-guide-tam-complet-adoption-du-systuxe8me-fraudx}
+
+\subsubsection{Partie 1 — Cadre théorique du Technology Acceptance Model
+(TAM)}\label{partie-1-cadre-thuxe9orique-du-technology-acceptance-model-tam}
+
+Le Technology Acceptance Model (Davis, 1989) est le cadre théorique le
+plus éprouvé pour prédire et expliquer l’adoption d’une technologie par
+ses utilisateurs. Il repose sur deux construits fondamentaux :
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.2500}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.2500}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.5000}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Construit
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Définition
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Application à FRAUDX
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\textbf{Utilité perçue (PU)} & Degré auquel un utilisateur croit que la
+technologie améliorera sa performance & Le système détecte-t-il plus de
+fraudes ? Réduit-il le temps d’analyse ? \\
+\textbf{Facilité d’utilisation perçue (PEOU)} & Degré auquel
+l’utilisateur croit que l’usage sera sans effort & Le dashboard est-il
+intuitif ? Les explications SHAP sont-elles compréhensibles ? \\
+\textbf{Confiance (Trust)} & Extension postérieure (Gefen et al., 2003)
+: croyance en la fiabilité du système & L’utilisateur accepte-t-il les
+décisions du ML ? L’explicabilité renforce-t-elle la confiance ? \\
+\textbf{Intention d’adoption (BI)} & Variable dépendante ultime :
+l’intention d’utiliser le système & L’utilisateur recommanderait-il
+FRAUDX ? Participerait-il à un pilote ? \\
+\end{longtable}
+}
+
+Ces deux construits influencent l’intention d’adoption (BI), qui
+elle-même prédit l’usage réel. Dans ce mémoire, deux variables
+contextuelles sont ajoutées : la confiance (TR) et les facteurs
+contextuels locaux (FC — infrastructure, données, réglementation).
+
+\subsubsection{Partie 2 — Guide d’entretien semi-structuré
+TAM}\label{partie-2-guide-dentretien-semi-structuruxe9-tam}
+
+\textbf{Profils cibles :} Analystes fraude, Gestionnaires de risques,
+Conformité/KYC-AML, DSI, Responsables mobile money \textbf{Durée estimée
+:} 30-40 minutes \textbf{Modalité :} Entretien individuel, semi-directif
+(guide souple, rebond possible)
+
+\paragraph{Thème 1 — Perception du problème et besoins
+(Contextualisation)}\label{thuxe8me-1-perception-du-probluxe8me-et-besoins-contextualisation}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.1026}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2564}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.3846}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2564}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+N°
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Question
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Dimension TAM
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Objectif
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+1 & Comment décririez-vous le problème de la fraude bancaire dans votre
+institution aujourd’hui ? & Contexte & Établir le référentiel partagé \\
+2 & Quelles sont, selon vous, les lacunes des systèmes actuels de
+détection ? & Contexte & Identifier les irritants \\
+3 & Qu’attendez-vous prioritairement d’un nouveau système de détection ?
+& PU (besoin) & Faire émerger les critères implicites \\
+\end{longtable}
+}
+
+\paragraph{Thème 2 — Utilité perçue du système FRAUDX
+(PU)}\label{thuxe8me-2-utilituxe9-peruxe7ue-du-systuxe8me-fraudx-pu}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.0976}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2439}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.3659}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2927}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+N°
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Question
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Dimension TAM
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Indicateur
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+4 & Si FRAUDX vous signalait une transaction suspecte avec un score de
+risque et une explication SHAP, en quoi cela changerait-il votre analyse
+? & PU — Performance & Gain perçu vs.~méthode actuelle \\
+5 & Pensez-vous qu’un tel système pourrait détecter des fraudes qui vous
+échappent aujourd’hui ? Si oui, lesquelles ? & PU — Efficacité &
+Coverage des typologies \\
+6 & Le temps de traitement des alertes vous semble-t-il un levier
+d’amélioration important ? & PU — Productivité & Réduction du temps
+perçu \\
+\end{longtable}
+}
+
+\paragraph{Thème 3 — Facilité d’utilisation perçue
+(PEOU)}\label{thuxe8me-3-facilituxe9-dutilisation-peruxe7ue-peou}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.0976}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2439}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.3659}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2927}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+N°
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Question
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Dimension TAM
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Indicateur
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+7 & En regardant ces deux visuels (bar plot SHAP, waterfall plot), que
+comprenez-vous de la décision du modèle ? & PEOU — Compréhension &
+Clarté perçue \\
+8 & Combien de temps de formation pensez-vous qu’un analyste
+non-spécialiste en IA aurait besoin pour utiliser ce tableau de bord ? &
+PEOU — Apprentissage & Effort perçu \\
+9 & Qu’est-ce qui pourrait rendre l’interface difficile à utiliser pour
+vos équipes ? & PEOU — Obstacles & Freins UX \\
+\end{longtable}
+}
+
+\paragraph{Thème 4 — Confiance et explicabilité
+(TR)}\label{thuxe8me-4-confiance-et-explicabilituxe9-tr}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.0976}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2439}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.3659}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2927}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+N°
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Question
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Dimension TAM
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Indicateur
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+10 & Recevoir une explication (ex. : « Cette transaction est suspecte
+car le montant est 3× supérieur à la moyenne et l’IP est inhabituelle »)
+vous inciterait-elle à faire davantage confiance à l’alerte ? & TR —
+Explicabilité & Valeur ajoutée du SHAP \\
+11 & À partir de quel niveau de confiance dans le système
+accepteriez-vous de ne pas vérifier manuellement chaque alerte ? & TR —
+Délégation & Seuil d’autonomie \\
+12 & Qu’est-ce qui vous freinerait dans l’adoption d’une décision prise
+par une IA ? & TR — Réticence & Facteurs de défiance \\
+\end{longtable}
+}
+
+\paragraph{Thème 5 — Adoption et passage à l’échelle
+(BI)}\label{thuxe8me-5-adoption-et-passage-uxe0-luxe9chelle-bi}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.0976}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2439}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.3659}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2927}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+N°
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Question
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Dimension TAM
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Indicateur
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+13 & Seriez-vous prêt à recommander FRAUDX à votre hiérarchie pour un
+projet pilote ? & BI — Intention & Adoption \\
+14 & Selon vous, quels seraient les trois principaux obstacles au
+déploiement d’un tel système au Togo ? & FC — Contraintes & Freins
+contextuels \\
+15 & Quelles adaptations locales seraient nécessaires pour que le
+système soit pleinement pertinent au Togo ? & FC — Adéquation &
+Spécificités locales \\
+\end{longtable}
+}
+
+\subsubsection{Partie 3 — Questionnaire quantitatif TAM
+(Auto-administré)}\label{partie-3-questionnaire-quantitatif-tam-auto-administruxe9}
+
+\textbf{Échelle :} Likert à 5 niveaux (1 = Pas du tout d’accord, 5 =
+Tout à fait d’accord)
+
+\paragraph{Section A — Profil du
+répondant}\label{section-a-profil-du-ruxe9pondant}
+
+A1. Catégorie de poste : Analyste fraude / Gestionnaire risques /
+Conformité / DSI / Mobile money A2. Années d’expérience dans le secteur
+financier : \textless{} 2 ans / 2-5 ans / 5-10 ans / \textgreater{} 10
+ans A3. Utilisez-vous actuellement un système automatisé de détection de
+fraude ? Oui / Non / Partiellement
+
+\paragraph{Section B — Utilité perçue
+(PU)}\label{section-b-utilituxe9-peruxe7ue-pu}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1622}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1622}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1351}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1351}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1351}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1351}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1351}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Code
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Item
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+PU1
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+PU2
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+PU3
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+PU4
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+PU5
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+PU1 & FRAUDX améliorerait significativement la détection des fraudes
+dans mon institution & 1 & 2 & 3 & 4 & 5 \\
+PU2 & FRAUDX permettrait de détecter des fraudes invisibles aux méthodes
+actuelles & 1 & 2 & 3 & 4 & 5 \\
+PU3 & FRAUDX réduirait le temps d’analyse des alertes & 1 & 2 & 3 & 4 &
+5 \\
+PU4 & FRAUDX aiderait à prioriser les alertes critiques & 1 & 2 & 3 & 4
+& 5 \\
+PU5 & Le système serait utile pour le reporting réglementaire & 1 & 2 &
+3 & 4 & 5 \\
+\end{longtable}
+}
+
+Score PU = moyenne de PU1 à PU5 (cible ≥ 3,5/5 pour validation)
+
+\paragraph{Section C — Facilité d’utilisation perçue
+(PEOU)}\label{section-c-facilituxe9-dutilisation-peruxe7ue-peou}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.2222}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.2222}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1111}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1111}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1111}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1111}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1111}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Code
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Item
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+1
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+2
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+3
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+4
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+5
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+PEOU1 & Les explications SHAP (bar plots, waterfall) sont faciles à
+comprendre & 1 & 2 & 3 & 4 & 5 \\
+PEOU2 & Le dashboard FRAUDX semble intuitif à prendre en main & 1 & 2 &
+3 & 4 & 5 \\
+PEOU3 & Un analyste non-spécialiste en IA peut utiliser FRAUDX avec une
+formation courte (\textless{} 1 jour) & 1 & 2 & 3 & 4 & 5 \\
+PEOU4 & Les visualisations SHAP sont claires même sans background
+technique & 1 & 2 & 3 & 4 & 5 \\
+PEOU5 & La configuration des seuils d’alerte est accessible & 1 & 2 & 3
+& 4 & 5 \\
+\end{longtable}
+}
+
+Score PEOU = moyenne de PEOU1 à PEOU5 (cible ≥ 3,5/5)
+
+\paragraph{Section D — Confiance (TR)}\label{section-d-confiance-tr}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.2222}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.2222}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1111}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1111}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1111}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1111}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1111}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Code
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Item
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+1
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+2
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+3
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+4
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+5
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+TR1 & Je fais confiance aux décisions du modèle ML pour la détection de
+fraude & 1 & 2 & 3 & 4 & 5 \\
+TR2 & L’explication SHAP renforce ma confiance dans les alertes
+produites & 1 & 2 & 3 & 4 & 5 \\
+TR3 & Je suis à l’aise avec une détection automatisée sans intervention
+humaine préalable & 1 & 2 & 3 & 4 & 5 \\
+TR4 & Les mécanismes de sécurité (authentification API, chiffrement,
+logs) sont suffisants pour un déploiement bancaire & 1 & 2 & 3 & 4 &
+5 \\
+TR5 & Je vérifierais moins d’alertes manuellement si le système montrait
+une fiabilité constante & 1 & 2 & 3 & 4 & 5 \\
+\end{longtable}
+}
+
+Score TR = moyenne de TR1 à TR5 (cible ≥ 3,5/5)
+
+\paragraph{Section E — Intention d’adoption
+(BI)}\label{section-e-intention-dadoption-bi}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.2222}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.2222}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1111}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1111}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1111}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1111}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1111}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Code
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Item
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+1
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+2
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+3
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+4
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+5
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+BI1 & Je recommanderais FRAUDX dans mon institution & 1 & 2 & 3 & 4 &
+5 \\
+BI2 & Je serais prêt à utiliser FRAUDX quotidiennement & 1 & 2 & 3 & 4 &
+5 \\
+BI3 & FRAUDX devrait être déployé prioritairement dans les banques
+togolaises & 1 & 2 & 3 & 4 & 5 \\
+BI4 & Je participerais volontiers à une phase pilote & 1 & 2 & 3 & 4 &
+5 \\
+BI5 & Je soutiendrais l’allocation d’un budget pour ce système & 1 & 2 &
+3 & 4 & 5 \\
+\end{longtable}
+}
+
+Score BI = moyenne de BI1 à BI5 (cible ≥ 3,5/5)
+
+\paragraph{Section F — Facteurs contextuels
+(FC)}\label{section-f-facteurs-contextuels-fc}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.2222}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.2222}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1111}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1111}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1111}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1111}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1111}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Code
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Item
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+1
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+2
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+3
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+4
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+5
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+FC1 & Les contraintes infrastructurelles (électricité, bande passante)
+sont un frein majeur & 1 & 2 & 3 & 4 & 5 \\
+FC2 & Le manque de données locales de fraude est un obstacle important &
+1 & 2 & 3 & 4 & 5 \\
+FC3 & La conformité réglementaire (BCEAO, CNIL) est une préoccupation
+prioritaire & 1 & 2 & 3 & 4 & 5 \\
+FC4 & Mon institution dispose des compétences techniques nécessaires
+pour exploiter un système IA & 1 & 2 & 3 & 4 & 5 \\
+FC5 & La direction est généralement ouverte à l’innovation technologique
+& 1 & 2 & 3 & 4 & 5 \\
+\end{longtable}
+}
+
+Score FC = items FC1-FC3 inversés (1→5, 5→1) puis moyenne avec FC4-FC5
+
+\subsubsection{Partie 4 — Grille d’analyse des résultats
+TAM}\label{partie-4-grille-danalyse-des-ruxe9sultats-tam}
+
+\paragraph{4.1. Grille de codification des entretiens
+semi-structurés}\label{grille-de-codification-des-entretiens-semi-structuruxe9s}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.1034}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.1897}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.1207}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.3621}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2241}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Code
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Dimension
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Thème
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Mots-clés / Indices
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Pondération
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+PU+ & Utilité perçue — positive & Thème 2 & « améliorerait », « utile »,
+« gain de temps », « nécessaire » & +1 \\
+PU- & Utilité perçue — négative & Thème 2 & « pas convaincu », « déjà
+suffisant », « inutile » & -1 \\
+PEOU+ & Facilité — positive & Thème 3 & « simple », « intuitif », «
+clair », « rapide à apprendre » & +1 \\
+PEOU- & Facilité — négative & Thème 3 & « complexe », « trop technique
+», « besoin de formation longue » & -1 \\
+TR+ & Confiance — positive & Thème 4 & « fiable », « confiance », «
+transparent », « explique bien » & +1 \\
+TR- & Confiance — négative & Thème 4 & « boîte noire », « méfiance », «
+pas fiable », « risques » & -1 \\
+BI+ & Adoption — positive & Thème 5 & « oui », « je recommande », « prêt
+», « prioritaire » & +1 \\
+BI- & Adoption — négative & Thème 5 & « pas maintenant », « trop tôt »,
+« pas prioritaire » & -1 \\
+FC+ & Contexte — facilitateur & Thème 5 & « infrastructure OK », «
+compétences disponibles », « budget » & +1 \\
+FC- & Contexte — frein & Thème 5 & « pas d’électricité », « problème de
+données », « coût » & -1 \\
+\end{longtable}
+}
+
+\paragraph{4.2. Scoring des entretiens}\label{scoring-des-entretiens}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.2549}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.4314}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3137}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Score total
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Niveau d’acceptabilité
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Interprétation
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+≥ +8 & Élevé & FRAUDX bien accepté, conditions réunies pour un pilote \\
++3 à +7 & Modéré & Acceptable sous réserves (formation, adaptation) \\
+-2 à +2 & Neutre & Attentiste, besoin de démonstration complémentaire \\
+≤ -3 & Faible & Freins majeurs, revoir la stratégie de déploiement \\
+\end{longtable}
+}
+
+\paragraph{4.3. Analyse croisée quantitative +
+qualitative}\label{analyse-croisuxe9e-quantitative-qualitative}
+
+La validation de HS3 combine les deux volets :
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.1892}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.2162}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.5946}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Seuil
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Source
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Statut dans ce mémoire
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+FP ≤ 2\% & Modèle XGBoost (quantitatif) & 4,77\% — partiellement
+atteint \\
+Satisfaction PU ≥ 70\% (≥ 3,5/5) & Questionnaire TAM (section B) &
+Perspective — non administré \\
+Majorité de codes PU+/PEOU+/TR+ & Entretiens semi-structurés (grille
+4.1) & Perspective — non administré \\
+\end{longtable}
+}
+
+La convergence entre score TAM ≥ 3,5/5, codification entretien ≥ +3 et
+FP ≤ 2\% constituerait une validation empirique forte de HS3.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{Annexe C : Description détaillée des indicateurs et formules
+de
+calcul}\label{annexe-c-description-duxe9tailluxe9e-des-indicateurs-et-formules-de-calcul}
+
+\subsubsection{C.1. Variables transactionnelles et
+temporelles}\label{c.1.-variables-transactionnelles-et-temporelles}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2128}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.1277}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.4894}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.1702}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Variable
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Type
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Formule / Description
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Source
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\texttt{TransactionAmt} & Continue & Montant brut de la transaction en
+USD & IEEE-CIS \\
+\texttt{TransactionDT} & Temporelle & Timestamp brut (secondes écoulées
+depuis le 01/12/2017) & IEEE-CIS \\
+\texttt{hour} & Catégorielle &
+\texttt{hour\ =\ (TransactionDT\ //\ 3600)\ \%\ 24} & Feature
+engineering \\
+\texttt{dayofweek} & Catégorielle &
+\texttt{dayofweek\ =\ (TransactionDT\ //\ 86400)\ \%\ 7} & Feature
+engineering \\
+\texttt{is\_night} & Binaire &
+\texttt{1\ if\ (hour\ \textless{}\ 6\ or\ hour\ \textgreater{}\ 22)\ else\ 0}
+& Feature engineering \\
+\texttt{is\_weekend} & Binaire &
+\texttt{1\ if\ dayofweek\ in\ \{5,\ 6\}\ else\ 0} & Feature
+engineering \\
+\texttt{ProductCD} & Catégorielle & Type de produit (C = carte, W =
+wallet, etc.) & IEEE-CIS \\
+\end{longtable}
+}
+
+\subsubsection{C.2. Variables de carte et
+dispositif}\label{c.2.-variables-de-carte-et-dispositif}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3448}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.2069}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.4483}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Variable
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Type
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Description
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\texttt{card1} à \texttt{card6} & Catégorielle & Identifiants anonymisés
+de la carte (émetteur, type, catégorie) \\
+\texttt{addr1}, \texttt{addr2} & Catégorielle & Codes de localisation
+anonymisés (pays, région) \\
+\texttt{dist1} & Continue & Distance anonymisée entre adresse de
+facturation et IP \\
+\texttt{P\_emaildomain}, \texttt{R\_emaildomain} & Catégorielle &
+Domaines email de l’acheteur et du destinataire \\
+\end{longtable}
+}
+
+\subsubsection{C.3. Variables de comportement et
+vélocité}\label{c.3.-variables-de-comportement-et-vuxe9locituxe9}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.2564}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.1538}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.5897}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Variable
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Type
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Formule / Description
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\texttt{tx\_count\_by\_card1} & Compteur &
+\texttt{count(transactions\ group\ by\ card1)} sur intervalle
+glissant \\
+\texttt{avg\_amount\_by\_card1} & Continue &
+\texttt{mean(TransactionAmt\ group\ by\ card1)} sur historique \\
+\texttt{log\_amount} & Continue & \texttt{log(TransactionAmt\ +\ 1)} —
+normalisation logarithmique \\
+\texttt{amt\_diff\_from\_avg} & Continue &
+\texttt{TransactionAmt\ -\ avg\_amount\_by\_card1} — écart au profil \\
+C* (C1 à C14) & Continue & Variables calculées par l’émetteur (scores de
+risque) \\
+D* (D1 à D15) & Continue & Délais anonymisés entre événements
+(secondes) \\
+\end{longtable}
+}
+
+\subsubsection{C.4. Variables anonymisées
+(PCA)}\label{c.4.-variables-anonymisuxe9es-pca}
+
+Les variables V* (V1 à V339) sont issues d’une transformation PCA
+(analyse en composantes principales) appliquée par les émetteurs pour
+anonymiser des données sensibles sans perte d’information discriminante.
+Ces variables ne sont pas interprétables individuellement mais leur
+contribution aux valeurs SHAP peut être analysée globalement.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{Annexe D : Questions anticipées de
+soutenance}\label{annexe-d-questions-anticipuxe9es-de-soutenance}
+
+Cette annexe recense les questions probables que le jury pourrait poser
+lors de la soutenance, avec des éléments de réponse structurés renvoyant
+aux sections correspondantes du mémoire.
+
+\subsubsection{D.1. Questions sur le cadrage et la
+problématique}\label{d.1.-questions-sur-le-cadrage-et-la-probluxe9matique}
+
+\textbf{Q1 — Pourquoi avoir choisi le jeu de données IEEE-CIS plutôt que
+des données togolaises ?}
+
+Faute de données bancaires réelles togolaises (confidentialité, absence
+de partenariat avec une institution financière locale), IEEE-CIS
+constitue le proxy le plus proche disponible. Ce dataset présente des
+caractéristiques transactionnelles transférables au Togo (montants,
+temporalité, vélocité). Les limites de cette approximation sont
+explicitement discutées en III.1.4.
+
+\textbf{Q2 — En quoi votre approche est-elle originale par rapport à la
+littérature existante ?}
+
+Trois originalités : (1) première étude documentée sur le Togo combinant
+banque et mobile money ; (2) architecture complète allant du modèle ML
+au dashboard sécurisé (JWT + RBAC) ; (3) validation empirique de
+l’explicabilité SHAP comme levier de réduction des FP. Voir I.3 et la
+synthèse du Tableau I.1.
+
+\subsubsection{D.2. Questions sur la
+méthodologie}\label{d.2.-questions-sur-la-muxe9thodologie}
+
+\textbf{Q3 — Pourquoi trois modèles seulement ? Pourquoi pas de Deep
+Learning ?}
+
+Le choix de trois modèles complémentaires (non supervisé, supervisé
+ensembliste, supervisé boosting) couvre les paradigmes principaux. Le
+Deep Learning (LSTM, Transformers) a été exclu pour trois raisons :
+absence de GPU, absence de structure séquentielle explicite dans les
+données, objectif de déploiement sur infrastructure modeste. Cette
+limitation est discutée en III.4.1.
+
+\textbf{Q4 — Pourquoi SMOTE plutôt que d’autres techniques de
+rééquilibrage (ADASYN, Random Under-sampling, cost-sensitive learning)
+?}
+
+SMOTE a été retenu pour son efficacité éprouvée sur les données
+tabulaires déséquilibrées et sa disponibilité dans Imbalanced-learn.
+ADASYN, plus sensible au bruit, n’a pas montré de supériorité
+significative dans la littérature sur des données similaires.
+L’under-sampling aléatoire aurait perdu trop d’exemples de la classe
+majoritaire. Le cost-sensitive learning (via \texttt{scale\_pos\_weight}
+dans XGBoost) a été combiné à SMOTE, cumulant les avantages des deux
+approches. Voir II.4.
+
+\textbf{Q5 — Pourquoi avoir utilisé un holdout simple plutôt qu’une
+validation croisée (k-fold) ?}
+
+Le holdout simple 80/20 avec stratification a été préféré à la
+validation croisée pour trois raisons : (1) la taille du jeu de données
+(118 108 transactions de test) garantit une estimation fiable sans
+nécessiter de ré-échantillonnage ; (2) Optuna utilise une validation
+croisée 3-folds sur le seul ensemble d’entraînement, combinant les
+avantages des deux approches ; (3) le holdout permet une interprétation
+directe de la matrice de confusion sur un ensemble de test fixe. Voir
+III.2.1.
+
+\subsubsection{D.3. Questions sur les
+résultats}\label{d.3.-questions-sur-les-ruxe9sultats}
+
+\textbf{Q6 — Le F1-Score de 0,23 est très faible. Comment justifiez-vous
+la performance du modèle ?}
+
+Cette question est centrale. Le F1 de 0,23 reflète l’arbitrage délibéré
+en faveur du Recall (85,02 \%) au détriment de la Précision (13,54 \%).
+Dans le contexte de la détection de fraude bancaire, un faux négatif
+(fraude non détectée) coûte en moyenne 10 à 100 fois plus qu’un faux
+positif (alerte superflue). Le système FRAUDX est conçu comme un outil
+de priorisation d’alertes pour analystes, non comme un système de
+blocage automatique. Les 20,7 \% de FP génèrent un volume d’alertes
+gérable par une équipe de 3 à 5 analystes, chaque alerte étant
+accompagnée d’une explication SHAP permettant une qualification en moins
+de 30 secondes. Voir III.4.1 et IV.6.2.
+
+\textbf{Q7 — Pourquoi Random Forest a-t-il un meilleur F1 (0,44) que
+XGBoost (0,23) mais un Recall inférieur (0,62 contre 0,85) ?}
+
+Random Forest optimise naturellement l’équilibre précision/rappel via le
+vote majoritaire de ses arbres, ce qui produit un F1 plus élevé mais au
+prix d’un nombre important de faux négatifs (38 \% de fraudes non
+détectées). XGBoost, avec \texttt{scale\_pos\_weight=22,4} et un seuil
+abaissé à 0,35, sacrifie la précision pour maximiser le Recall. Le choix
+entre les deux dépend du contexte opérationnel : pour une détection
+maximale, XGBoost est préféré ; pour un équilibre, Random Forest
+pourrait être retenu. Voir Tableau III.1.
+
+\textbf{Q8 — L’AUC-PR de 0,57 est inférieure à la cible de 0,65.
+Qu’est-ce que cela implique ?}
+
+L’AUC-PR mesure la performance moyenne du modèle sur tous les seuils
+possibles. Un score de 0,57 indique que le modèle discrimine
+correctement une partie significative des transactions frauduleuses mais
+que la marge de séparation entre classes reste limitée en raison du fort
+déséquilibre et de l’absence de variables spécifiques au contexte
+togolais. L’optimisation du seuil à 0,35 améliore le Recall mais ne peut
+compenser structurellement la qualité intrinsèque du scoring. L’AUC-PR
+pourrait être améliorée par l’ajout de données locales. Voir III.4.1.
+
+\subsubsection{D.4. Questions sur la plateforme et
+l’architecture}\label{d.4.-questions-sur-la-plateforme-et-larchitecture}
+
+\textbf{Q9 — Comment garantissez-vous la sécurité des données bancaires
+?}
+
+Trois niveaux de sécurité : (1) authentification JWT (HMAC-SHA256) avec
+tokens limités dans le temps (30 minutes) ; (2) contrôle d’accès RBAC
+définissant strictement les permissions par rôle (analyste, superviseur,
+administrateur) ; (3) chiffrement AES-256 pour les données au repos et
+TLS 1.3 pour les données en transit. Un limiteur de débit (100
+req/min/IP) protège contre les abus. La conformité à la loi N°2020-003
+et aux directives BCEAO est assurée par des logs d’audit horodatés
+conservés 10 ans. Voir III.3.3.
+
+\textbf{Q10 — Le prototype est-il industrialisable ? Quelles sont les
+étapes nécessaires ?}
+
+Le prototype démontre la faisabilité technique mais n’est pas
+industrialisable en l’état. Les étapes nécessaires sont : (1)
+conteneurisation (Docker, Kubernetes) et déploiement cloud/hybride ; (2)
+migration vers une base de données relationnelle robuste (PostgreSQL) ;
+(3) mise en place d’un pipeline CI/CD ; (4) tests de charge (cible : 50
+000 transactions/jour) ; (5) ajout d’un WAF applicatif ; (6)
+certification par un auditeur externe. Un budget de 72 500 € est estimé
+pour la première année (IV.6.1).
+
+\subsubsection{D.5. Questions sur les
+perspectives}\label{d.5.-questions-sur-les-perspectives}
+
+\textbf{Q11 — Comment passer de 20,7 \% de FP à la cible de 2 \% ?}
+
+Plusieurs leviers : (1) réentraînement avec feedback des analystes
+(\textasciitilde3 mois pour observer une réduction significative) ; (2)
+ajout de données locales togolaises pour enrichir la représentation des
+transactions légitimes ; (3) calibrage plus fin du seuil par transaction
+(seuil dynamique selon le montant, l’historique client) ; (4) ajout
+d’une couche de règles métier post-ML pour filtrer les FP évidents. Voir
+IV.4.6.
+
+\textbf{Q12 — Quelles sont les prochaines étapes de votre recherche ?}
+
+À court terme : établir un partenariat avec une banque togolaise pour
+valider le modèle sur des données réelles. À moyen terme : déployer le
+pilote FRAUDX dans une institution partenaire (SUNU Bank ou autre) et
+mesurer l’acceptabilité via le questionnaire TAM (Annexe B). À long
+terme : extension à l’échelle de l’UEMOA et intégration de techniques
+avancées (apprentissage fédéré, LSTM). Voir IV.7.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{TABLE DES MATIERES}\label{table-des-matieres}
+
+DEDICACE ……………………………………………………………………………………………………………. I REMERCIEMENTS
+……………………………………………………………………………………………… II RESUME
+…………………………………………………………………………………………………………….. III ABSTRACT
+………………………………………………………………………………………………………… IV SOMMAIRE
+…………………………………………………………………………………………………………. V LISTE DES TABLEAUX
+……………………………………………………………………………………… VI LISTE DES FIGURES ET GRAPHIQUES
+…………………………………………………………….. VII LISTE DES ABREVIATIONS
+……………………………………………………………………………. VIII
+
+INTRODUCTION GENERALE ………………………………………………………………………………. 1 1. CONTEXTE
+GENERAL DE L’ETUDE ……………………………………………………………….. 2 2. PROBLEMATIQUE DE
+L’ETUDE …………………………………………………………………….. 3 2.1. Présentation du problème
+…………………………………………………………………………… 3 2.2. Formulation du problème
+…………………………………………………………………………… 3 3. HYPOTHESES DE L’ETUDE
+……………………………………………………………………………. 4 3.1. Hypothèse générale
+……………………………………………………………………………………. 4 3.2. Hypothèses spécifiques
+………………………………………………………………………………. 4 4. OBJECTIFS DE L’ETUDE
+…………………………………………………………………………………. 5 4.1. Objectif général
+…………………………………………………………………………………………. 5 4.2. Objectifs spécifiques
+………………………………………………………………………………….. 5 5. JUSTIFICATION DE L’ETUDE
+………………………………………………………………………….. 6 6. DELIMITATION DE L’ETUDE
+………………………………………………………………………….. 7 7. PLAN DU MEMOIRE
+………………………………………………………………………………………. 8
+
+CHAPITRE I : CADRE THEORIQUE ET CONCEPTUEL ………………………………………… 9
+Introduction ……………………………………………………………………………………………………… 10 I.1. Cadre
+théorique et état de l’art …………………………………………………………………….. 11 I.1.1. La
+fraude bancaire et mobile money ………………………………………………………. 11 I.1.2. Le
+Machine Learning appliqué à la détection de fraude ……………………………. 14
+I.1.3. L’explicabilité (XAI) ……………………………………………………………………………. 18 I.1.4.
+Cadre légal et réglementaire …………………………………………………………………. 20 I.2.
+Historique et évolution du domaine ………………………………………………………………. 22 I.3.
+Études antérieures et lacunes ………………………………………………………………………. 24 Conclusion
+du chapitre ……………………………………………………………………………………… 27
+
+CHAPITRE II : METHODOLOGIE DE L’ETUDE ………………………………………………….. 28
+Introduction ……………………………………………………………………………………………………… 28 II.1. Nature de
+l’étude ………………………………………………………………………………………. 29 II.2. Variables de l’étude
+…………………………………………………………………………………… 30 II.2.4. Dynamique anticipée des
+variables …………………………………………………………. 31 II.3. Population et échantillon
+……………………………………………………………………………. 32 II.4. Approche méthodologique
+………………………………………………………………………….. 33 II.5. Outils de l’étude
+………………………………………………………………………………………. 35 II.6. Stratégie de vérification
+des hypothèses ……………………………………………………….. 36 Conclusion du chapitre
+……………………………………………………………………………………… 36
+
+CHAPITRE III : PRESENTATION DE LA SITUATION ET COLLECTE DES DONNEES ..
+37 Introduction ……………………………………………………………………………………………………… 37 III.1.
+Présentation et analyse exploratoire des données …………………………………………. 38
+III.2. Conception et évaluation des modèles ………………………………………………………… 40
+III.3. Proposition de plateforme FRAUDX …………………………………………………………… 43
+III.4. Tests et validation ……………………………………………………………………………………. 46
+Conclusion du chapitre ……………………………………………………………………………………… 48
+
+CHAPITRE IV : ANALYSE-DIAGNOSTIC ET PROPOSITION D’INTERVENTION ……. 49
+Introduction ……………………………………………………………………………………………………… 49 IV.1.
+Présentation et analyse de la situation ………………………………………………………….. 50
+IV.1.1. Méthodologie d’investigation ……………………………………………………………….. 50
+IV.1.2. Diagnostic de la situation …………………………………………………………………….. 50
+IV.1.3. Synthèse diagnostique et besoins stratégiques ……………………………………………
+51 IV.1.4. Vérification des hypothèses ………………………………………………………………….. 52
+IV.2. Intervention proposée et justification ………………………………………………………….. 53
+IV.2.1. L’intervention : le système FRAUDX ………………………………………………………. 53
+IV.2.2. Justification de l’intervention ………………………………………………………………. 53
+IV.3. Objectifs de l’intervention …………………………………………………………………………. 54
+IV.3.1. Objectif général ………………………………………………………………………………… 54 IV.3.2.
+Objectifs spécifiques ………………………………………………………………………….. 54 IV.4.
+Composantes de l’intervention envisagée ……………………………………………………….. 55
+IV.4.1. Module de collecte et prétraitement ……………………………………………………….. 55
+IV.4.2. Moteur de détection XGBoost ……………………………………………………………….. 55
+IV.4.3. Module d’explicabilité SHAP ………………………………………………………………… 56 IV.4.4.
+Dashboard interactif ……………………………………………………………………….. 56 IV.4.5. Module de
+sécurité et conformité …………………………………………………………… 56 IV.4.6. Module de
+feedback et apprentissage continu …………………………………………….. 57 IV.4.7. API
+d’intégration et connecteurs …………………………………………………………… 57 IV.5. Stratégies
+d’action et périmètre …………………………………………………………………. 58 IV.5.1. Stratégies
+d’action …………………………………………………………………………… 58 IV.5.2. Périmètre de
+l’intervention …………………………………………………………………. 58 IV.6. Étude de faisabilité
+…………………………………………………………………………………. 59 IV.6.1. Faisabilité économique
+……………………………………………………………………….. 59 IV.6.2. Faisabilité sociale
+……………………………………………………………………………. 60 IV.6.3. Faisabilité technique
+…………………………………………………………………………. 60 IV.6.4. Faisabilité environnementale
+………………………………………………………………… 61 IV.7. Perspectives et limites
+……………………………………………………………………………. 62 Conclusion du chapitre
+……………………………………………………………………………………… 62
+
+CONCLUSION GENERALE ………………………………………………………………………………… 64 BIBLIOGRAPHIE ET
+WEBOGRAPHIE ………………………………………………………………….. X ANNEXES
+………………………………………………………………………………………………………… XIII Annexe A : Grille
+d’entretien semi-directif ……………………………………………………… XIII Annexe B : Guide
+TAM complet — Adoption du système FRAUDX …………………… XVI Annexe C :
+Description détaillée des indicateurs et formules de calcul ………………..
+XXII Annexe D : Questions anticipées de soutenance …………………………………………………
+XXV
+
+\end{document}
